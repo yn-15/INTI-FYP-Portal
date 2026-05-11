@@ -1,0 +1,247 @@
+// This is your Prisma schema file.
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Departments ───────────────────────────────────────────────────────────────
+model Department {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // 'IT', 'Business', etc.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users         User[]
+  proposals     Proposal[]
+  teams         Team[]
+  notifications Notification[]
+
+  @@map("departments")
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+enum UserRole {
+  admin
+  lecturer
+  student
+  employer
+}
+
+enum UserStatus {
+  pending
+  active
+  deactivated
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  firstName   String     @map("first_name")
+  lastName    String     @map("last_name")
+  email       String     @unique
+  passwordHash String    @map("password_hash")
+  role        UserRole
+  status      UserStatus @default(pending)
+  companyName String?    @map("company_name")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId Int?        @map("department_id")
+
+  approvedBy   User?    @relation("ApprovedBy", fields: [approvedById], references: [id])
+  approvedById Int?     @map("approved_by")
+  approvedAt   DateTime? @map("approved_at")
+
+  // Self-relation for approvedBy
+  approvals    User[]   @relation("ApprovedBy")
+
+  // Relations
+  submittedProposals  Proposal[]          @relation("SubmittedBy")
+  reviewedProposals   Proposal[]          @relation("ReviewedBy")
+  proposalSelections  ProposalSelection[]
+  teamMemberships     TeamMember[]
+  supervisedTeams     Team[]
+  sentMessages        ChatMessage[]
+  createdNotifications    Notification[]  @relation("NotificationCreatedBy")
+  targetedNotifications   Notification[]  @relation("NotificationTargetUser")
+  auditLogs           AuditLog[]
+  notificationReads   NotificationRead[]
+
+  @@map("users")
+}
+
+// ── Proposals ─────────────────────────────────────────────────────────────────
+enum ProposalStatus {
+  pending
+  approved
+  rejected
+}
+
+model Proposal {
+  id               Int            @id @default(autoincrement())
+  title            String
+  companyName      String         @map("company_name")
+  companyWebsite   String?        @map("company_website")
+  companyCategory  String?        @map("company_category")
+  projectChampion  String?        @map("project_champion")
+  processOwner     String?        @map("process_owner")
+  intiContact      String?        @map("inti_contact")
+  briefProfile     String?        @map("brief_profile")
+  problemStatement String         @map("problem_statement")
+  discipline       String?
+  deliverables     String?
+  technologies     String?
+  skillsNeeded     String?        @map("skills_needed")
+  targetAudience   String?        @map("target_audience")
+  practicalResources String?      @map("practical_resources")
+  status           ProposalStatus @default(pending)
+  reviewFeedback   String?        @map("review_feedback")
+  submittedAt      DateTime       @default(now()) @map("submitted_at")
+  reviewedAt       DateTime?      @map("reviewed_at")
+
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId Int        @map("department_id")
+
+  submittedBy   User @relation("SubmittedBy", fields: [submittedById], references: [id])
+  submittedById Int  @map("submitted_by")
+
+  reviewedBy   User? @relation("ReviewedBy", fields: [reviewedById], references: [id])
+  reviewedById Int?  @map("reviewed_by")
+
+  // Relations
+  selection   ProposalSelection?
+  team        Team?
+  chatThread  ChatThread?
+
+  @@map("proposals")
+}
+
+// ── Proposal Selections ───────────────────────────────────────────────────────
+model ProposalSelection {
+  id         Int       @id @default(autoincrement())
+  selectedAt DateTime  @default(now()) @map("selected_at")
+  droppedAt  DateTime? @map("dropped_at")
+  isLocked   Boolean   @default(false) @map("is_locked")
+
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+  proposalId Int      @unique @map("proposal_id")
+
+  student   User @relation(fields: [studentId], references: [id])
+  studentId Int  @unique @map("student_id")
+
+  @@map("proposal_selections")
+}
+
+// ── Teams ─────────────────────────────────────────────────────────────────────
+model Team {
+  id        Int      @id @default(autoincrement())
+  name      String
+  confirmed Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+  proposalId Int      @unique @map("proposal_id")
+
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId Int        @map("department_id")
+
+  supervisor   User @relation(fields: [supervisorId], references: [id])
+  supervisorId Int  @map("supervisor_id")
+
+  members TeamMember[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  team      Team @relation(fields: [teamId], references: [id])
+  teamId    Int  @map("team_id")
+
+  student   User @relation(fields: [studentId], references: [id])
+  studentId Int  @map("student_id")
+
+  @@id([teamId, studentId])
+  @@map("team_members")
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  createdBy   User @relation("NotificationCreatedBy", fields: [createdById], references: [id])
+  createdById Int  @map("created_by")
+
+  targetRole         String?      @map("target_role")  // null = all roles
+
+  targetDepartment   Department? @relation(fields: [targetDepartmentId], references: [id])
+  targetDepartmentId Int?        @map("target_department_id")
+
+  targetUser   User? @relation("NotificationTargetUser", fields: [targetUserId], references: [id])
+  targetUserId Int?  @map("target_user_id")
+
+  reads NotificationRead[]
+
+  @@map("notifications")
+}
+
+model NotificationRead {
+  readAt DateTime @default(now()) @map("read_at")
+
+  notification   Notification @relation(fields: [notificationId], references: [id])
+  notificationId Int          @map("notification_id")
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map("user_id")
+
+  @@id([notificationId, userId])
+  @@map("notification_reads")
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+model ChatThread {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+  proposalId Int      @unique @map("proposal_id")
+
+  messages ChatMessage[]
+
+  @@map("chat_threads")
+}
+
+model ChatMessage {
+  id      Int      @id @default(autoincrement())
+  message String
+  sentAt  DateTime @default(now()) @map("sent_at")
+
+  thread   ChatThread @relation(fields: [threadId], references: [id])
+  threadId Int        @map("thread_id")
+
+  sender   User @relation(fields: [senderId], references: [id])
+  senderId Int  @map("sender_id")
+
+  @@map("chat_messages")
+}
+
+// ── Audit Log ─────────────────────────────────────────────────────────────────
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   Int?     @map("entity_id")
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map("user_id")
+
+  @@map("audit_logs")
+}

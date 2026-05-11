@@ -1,0 +1,88 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Sizes ── */
+.sm { font-size: 12.5px; padding: 6px 12px; }
+.md { font-size: 14px;   padding: 9px 18px; }
+.lg { font-size: 15px;   padding: 11px 24px; }
+
+/* ── Variants ── */
+.primary {
+  background: var(--red);
+  color: #fff;
+}
+.primary:hover:not(:disabled) {
+  background: var(--red-dark);
+}
+
+.secondary {
+  background: var(--black);
+  color: #fff;
+}
+.secondary:hover:not(:disabled) {
+  background: #333;
+}
+
+.outline {
+  background: transparent;
+  color: var(--red);
+  border: 1.5px solid var(--red);
+}
+.outline:hover:not(:disabled) {
+  background: var(--red-faint);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--card-hover);
+  color: var(--text-primary);
+}
+
+.danger {
+  background: var(--error);
+  color: #fff;
+}
+.danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.success {
+  background: var(--success);
+  color: #fff;
+}
+.success:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.subtle {
+  background: var(--red-faint);
+  color: var(--red);
+  border: 1px solid var(--red-border);
+}
+.subtle:hover:not(:disabled) {
+  background: #ffe4e4;
+}
+
+.fullWidth {
+  width: 100%;
+}

@@ -1,0 +1,14 @@
+{
+  "name": "fyp-project",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "fyp-frontend",
+    "fyp-backend"
+  ],
+  "scripts": {
+    "frontend": "cd fyp-frontend && npm run dev",
+    "backend": "cd fyp-backend && npm run dev",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\""
+  }
+}

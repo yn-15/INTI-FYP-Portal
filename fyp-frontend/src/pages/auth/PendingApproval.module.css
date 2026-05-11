@@ -1,0 +1,134 @@
+.page {
+  min-height: 100vh;
+  background: #F4F5F7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid #E8E9EC;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.03),
+    0 4px 6px rgba(0,0,0,0.04),
+    0 12px 32px rgba(0,0,0,0.08);
+  padding: 40px 36px;
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+
+.logo {
+  height: 34px;
+  width: auto;
+  margin: 0 auto 28px;
+  display: block;
+}
+
+.iconWrap {
+  width: 72px;
+  height: 72px;
+  background: var(--warning-faint);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  border: 1px solid var(--warning-border);
+}
+
+h1 {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  margin-bottom: 12px;
+}
+
+p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+/* ── Polling indicator ── */
+.pollingBox {
+  background: #F8F9FA;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 16px 0;
+  text-align: left;
+}
+
+.pollingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pollingBar {
+  height: 3px;
+  background: #E5E7EB;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.pollingBarFill {
+  height: 100%;
+  background: var(--red);
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+/* ── Info box ── */
+.infoBox {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  text-align: left;
+  margin: 16px 0;
+}
+
+.infoTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.steps {
+  list-style: decimal;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.steps li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.contact {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.contact a { color: var(--red); }
+
+/* Spin animation for the refresh icon */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

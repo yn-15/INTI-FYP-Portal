@@ -1,0 +1,9 @@
+[build]
+  base    = "fyp-frontend"
+  command = "npm run build"
+  publish = "fyp-frontend/dist"
+
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

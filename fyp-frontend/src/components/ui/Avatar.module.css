@@ -1,0 +1,17 @@
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.img {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
