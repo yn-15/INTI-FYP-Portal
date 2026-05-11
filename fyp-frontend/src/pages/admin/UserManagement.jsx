@@ -267,6 +267,48 @@ export default function UserManagement() {
           )}
         </Modal>
       )}
+
+      {/* Edit user modal */}
+      {modal === 'edit' && selected && (
+        <Modal title="Edit User" onClose={() => { setModal(null); setSelected(null) }}
+          footer={<>
+            <Button variant="ghost" onClick={() => { setModal(null); setSelected(null) }}>Cancel</Button>
+            <Button onClick={async () => {
+              try {
+                const updated = await api.updateUser(selected.id, {
+                  firstName: selected.first_name,
+                  lastName:  selected.last_name,
+                  departmentId: selected.department_id || undefined,
+                  companyName: selected.company_name || undefined,
+                })
+                setUsers(prev => prev.map(u => u.id === selected.id ? normalise(updated) : u))
+                showAlert('success', 'User updated successfully.')
+                setModal(null); setSelected(null)
+              } catch(e) { showAlert('error', e.message) }
+            }}>Save Changes</Button>
+          </>}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 16px' }}>
+            <Input label="First Name" name="fn" value={selected.first_name || ''}
+              onChange={v => setSelected(p => ({ ...p, first_name: v }))} required/>
+            <Input label="Last Name" name="ln" value={selected.last_name || ''}
+              onChange={v => setSelected(p => ({ ...p, last_name: v }))} required/>
+          </div>
+          <Input label="Email" name="em" value={selected.email || ''} onChange={() => {}}
+            disabled hint="Email cannot be changed."/>
+          <Input label="Role" name="role" value={selected.role || ''} onChange={() => {}}
+            disabled hint="Role cannot be changed here."/>
+          {['student','lecturer'].includes(selected.role) && (
+            <Input label="Department" name="dept" type="select"
+            value={String(selected.department_id || '')}
+            onChange={v => setSelected(p => ({ ...p, department_id: parseInt(v) }))}
+            options={depts.map(d => ({ value: String(d.id), label: d.name }))}/>
+          )}
+          {selected.role === 'employer' && (
+            <Input label="Company Name" name="co" value={selected.company_name || ''}
+              onChange={v => setSelected(p => ({ ...p, company_name: v }))}/>
+          )}
+        </Modal>
+      )}
     </div>
   )
 }
