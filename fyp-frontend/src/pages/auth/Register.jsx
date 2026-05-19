@@ -30,18 +30,18 @@ export default function Register() {
   const set = key => val => setForm(p => ({ ...p, [key]: val }))
   const pwStrength = getPasswordStrength(form.password)
 
-  const nameRegex = /^[a-zA-Z\s'-]+$/
-
-  if (!nameRegex.test(form.first_name)) {
-    errs.first_name = 'First name can only contain letters'
-  }
-  if (!nameRegex.test(form.last_name)) {
-    errs.last_name = 'Last name can only contain letters'
-  }
-
   const handleSubmit = async e => {
     e.preventDefault()
     const errs = validateRegisterForm({ ...form, role })
+
+    const nameRegex = /^[a-zA-Z\s'-]+$/
+    if (form.first_name && !nameRegex.test(form.first_name)) {
+      errs.first_name = 'First name can only contain letters'
+    }
+    if (form.last_name && !nameRegex.test(form.last_name)) {
+      errs.last_name = 'Last name can only contain letters'
+    }
+    
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
     const result = await register({ ...form, role })
