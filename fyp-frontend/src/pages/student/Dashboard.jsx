@@ -26,19 +26,19 @@ export default function StudentDashboard() {
         const [sel, team, proposals] = await Promise.all([
           api.getMySelection(), api.getMyTeam(), api.getProposals()
         ])
-        
+
         setMySelection(sel)
         setMyTeam(team)
         setAvailable(proposals.filter(p => !p.selection).length)
 
         // Team leader — fetch via selection
         if (sel) {
-          const p = await api.getProposalbyId(sel.proposalId||sel.proposal_id)
+          const p = await api.getProposalById(sel.proposalId||sel.proposal_id)
           setMyProposal(p)
         }
         // Non-leader — get proposal from team
         else if (team?.proposal) {
-          const p = await api.getProposalbyId(team.proposal.id)
+          const p = await api.getProposalById(team.proposal.id)
           setMyProposal(p)
         }
       } catch(e) { console.error(e) }
