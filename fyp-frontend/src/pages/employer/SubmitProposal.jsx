@@ -106,7 +106,7 @@ export default function SubmitProposal() {
           <Input label="Project Champion" name="champ" value={form.project_champion} onChange={set('project_champion')} placeholder="Senior person leading this"/>
           <Input label="Process Owner" name="owner" value={form.process_owner} onChange={set('process_owner')} placeholder="Day-to-day contact"/>
           <Input label="INTI Staff Contact" name="inti" value={form.inti_contact} onChange={set('inti_contact')} placeholder="e.g. Dr. Robina Tinawin"/>
-          <Input label="Department *" name="dept" type="select" value={form.department_id} onChange={set('department_id')} required error={errors.department_id}
+          <Input label="Department" name="dept" type="select" value={form.department_id} onChange={set('department_id')} required error={errors.department_id}
             options={depts.map(d=>({value:String(d.id),label:d.name}))} hint="Select the INTI department most relevant to your project"/>
         </div>
         <Input label="Company Profile" name="profile" type="textarea" rows={3} value={form.brief_profile} onChange={set('brief_profile')} placeholder="Describe your company..."/>
