@@ -29,9 +29,15 @@ export default function StudentDashboard() {
         setMySelection(sel)
         setMyTeam(team)
         setAvailable(proposals.filter(p => !p.selection).length)
+
+        // Team leader — fetch via selection
         if (sel) {
           const p = await api.getProposalById(sel.proposalId||sel.proposal_id)
           setMyProposal(p)
+        }
+        // Non-leader — get proposal from team
+        else if (team?.proposal) {
+          setMyProposal(team.proposal)
         }
       } catch(e) { console.error(e) }
       finally { setLoading(false) }
@@ -52,7 +58,7 @@ export default function StudentDashboard() {
       </div>
 
       <div className={styles.statsGrid} style={{ marginBottom:20 }}>
-        <StatCard label="My Project"    value={myProposal?'1 Selected':'None'} accent={myProposal?'#16A34A':'#D97706'} icon={BookOpen}
+        <StatCard label="My Project"    value={myProposal?'Assigned':'None'} accent={myProposal?'#16A34A':'#D97706'} icon={BookOpen}
           sub={myProposal?myProposal.title?.slice(0,30)+'…':`${available} available`}/>
         <StatCard label="My Team"       value={myTeam?myTeam.name:'Not Assigned'} accent={myTeam?'#CC0000':'#D97706'} icon={UsersRound}
           sub={myTeam?(myTeam.confirmed?'Confirmed by supervisor':'Pending confirmation'):'Awaiting assignment'}/>
