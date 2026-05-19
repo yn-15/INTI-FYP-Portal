@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, BookOpen, CheckCircle } from 'lucide-react'
+import { Search, BookOpen, CheckCircle, Crown } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -10,9 +10,9 @@ import { formatDate, getDaysUntilLock, isSelectionLocked } from '../../utils/hel
 import styles from './Student.module.css'
 
 export default function BrowseProposals() {
-  const { user } = useAuth()
+  const { user }    = useAuth()
   const [proposals, setProposals]   = useState([])
-  const [mySelection, setMySelection] = useState(null)
+  const [myTeam, setMyTeam]         = useState(null)
   const [filter, setFilter]         = useState('all')
   const [search, setSearch]         = useState('')
   const [modal, setModal]           = useState(null)
@@ -25,22 +25,27 @@ export default function BrowseProposals() {
   const load = async () => {
     try {
       setLoading(true)
-      const [p, sel] = await Promise.all([api.getProposals(), api.getMySelection()])
+      const [p, team] = await Promise.all([api.getProposals(), api.getMyTeam()])
       setProposals(p)
-      setMySelection(sel)
+      setMyTeam(team)
     } catch(e) { showAlert('error', e.message) }
     finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [])
 
-  const myProposal = mySelection ? proposals.find(p => p.id === mySelection.proposalId) : null
-  const isTaken = (pid) => proposals.find(p => p.id === pid)?.selection && mySelection?.proposalId !== pid
-  const isMySelection = (pid) => mySelection?.proposalId === pid
-
+  const isLeader     = myTeam?.isLeader === true
+  const teamProposal = myTeam?.proposal
+  const isTaken = (pid) => {
+    const proposal = proposals.find(p => p.id === pid)
+    // Taken if it has a selection OR if it's linked to a team (via team relation)
+    const hasSelection = !!proposal?.selection
+    const linkedToOtherTeam = teamProposal?.id !== pid && !!proposal?.team
+    return hasSelection || linkedToOtherTeam
+  }
   const filtered = proposals.filter(p => {
-    if (filter === 'available') return !isTaken(p.id) && !isMySelection(p.id)
-    if (filter === 'taken')     return isTaken(p.id)
+    if (filter === 'available') return !isTaken(p.id)
+    if (filter === 'taken') return isTaken(p.id) || teamProposal?.id === p.id
     if (search) return p.title.toLowerCase().includes(search.toLowerCase()) ||
                        (p.companyName||'').toLowerCase().includes(search.toLowerCase())
     return true
@@ -51,71 +56,80 @@ export default function BrowseProposals() {
   })
 
   const handleSelect = async () => {
+    if (!myTeam) return
     try {
-      const sel = await api.selectProposal(selected.id)
-      setMySelection(sel)
+      const updated = await api.linkProposal(myTeam.id, selected.id)
+      setMyTeam({ ...updated, isLeader: true })
       await load()
-      showAlert('success', `You have selected "${selected.title}". You have 7 days to change your mind.`)
+      showAlert('success', `"${selected.title}" has been selected for ${myTeam.name}. You have 7 days to change your selection.`)
       setModal(null); setSelected(null)
     } catch(e) { showAlert('error', e.message) }
   }
 
   const handleDrop = async () => {
+    if (!myTeam) return
     try {
-      await api.dropProposal(mySelection.proposalId)
-      setMySelection(null)
+      const updated = await api.unlinkProposal(myTeam.id)
+      setMyTeam({ ...updated, isLeader: true })
       await load()
-      showAlert('success', 'Selection dropped. You can now choose a different proposal.')
+      showAlert('success', 'Project selection dropped. You can now choose a different proposal.')
       setModal(null)
     } catch(e) { showAlert('error', e.message) }
   }
 
-  const daysLeft = mySelection && !isSelectionLocked(mySelection.selectedAt||mySelection.selected_at)
-    ? getDaysUntilLock(mySelection.selectedAt||mySelection.selected_at) : null
-  const locked   = mySelection ? isSelectionLocked(mySelection.selectedAt||mySelection.selected_at) : false
+  // Get selection date from proposalSelection
+  const mySelection   = proposals.find(p => p.id === teamProposal?.id)?.selection
+  const selectedAt    = mySelection?.selectedAt || mySelection?.selected_at
+  const daysLeft      = selectedAt && !isSelectionLocked(selectedAt) ? getDaysUntilLock(selectedAt) : null
+  const locked        = selectedAt ? isSelectionLocked(selectedAt) : false
 
   return (
     <div className={styles.page}>
       {alert && <Alert type={alert.type}>{alert.msg}</Alert>}
 
-      {/* Selected banner */}
-      {myProposal && (
-        <div className={styles.selectedBanner} style={{ marginBottom:20 }}>
+      {/* Team + role info banner */}
+      {myTeam ? (
+        <div style={{ padding:'14px 18px', background: isLeader?'linear-gradient(135deg,#1A1A1A,#2D0000)':'var(--card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', marginBottom:20, display:'flex', alignItems:'center', gap:14 }}>
+          {isLeader && <Crown size={20} color="#D97706"/>}
           <div style={{ flex:1 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-              <CheckCircle size={16} color="#4ADE80"/>
-              <span style={{ fontSize:12, fontWeight:700, color:'#4ADE80', textTransform:'uppercase', letterSpacing:'0.4px' }}>Your Selected Project</span>
+            <div style={{ fontSize:13.5, fontWeight:700, color: isLeader?'#fff':'var(--text-primary)', marginBottom:3 }}>
+              {isLeader ? `You are the Team Leader of ${myTeam.name}` : `You are a member of ${myTeam.name}`}
             </div>
-            <div className={styles.selectedBannerTitle}>{myProposal.title}</div>
-            <div className={styles.selectedBannerSub}>{myProposal.companyName}</div>
-            {daysLeft !== null && (
-              <div style={{ marginTop:10, display:'inline-flex', alignItems:'center', gap:6, padding:'5px 12px', background:'rgba(217,119,6,0.15)', borderRadius:20, border:'1px solid rgba(217,119,6,0.3)' }}>
-                <span style={{ fontSize:12, color:'#FCD34D' }}>⏱ {daysLeft} day{daysLeft!==1?'s':''} left to drop</span>
-              </div>
-            )}
-            {locked && (
-              <div style={{ marginTop:10, display:'inline-flex', alignItems:'center', gap:6, padding:'5px 12px', background:'rgba(220,38,38,0.15)', borderRadius:20, border:'1px solid rgba(220,38,38,0.3)' }}>
-                <span style={{ fontSize:12, color:'#FCA5A5' }}>🔒 Selection locked — contact admin to change</span>
-              </div>
-            )}
+            <div style={{ fontSize:12.5, color: isLeader?'rgba(255,255,255,0.6)':'var(--text-muted)' }}>
+              {isLeader
+                ? teamProposal
+                  ? `Selected project: ${teamProposal.title}`
+                  : 'Select a project proposal for your team below'
+                : teamProposal
+                  ? `Team project: ${teamProposal.title}`
+                  : 'Your team leader has not selected a project yet'
+              }
+            </div>
           </div>
-          {!locked && (
+          {isLeader && teamProposal && !locked && (
             <Button variant="outline" size="sm"
-              style={{ borderColor:'rgba(255,255,255,0.2)', color:'#fff', background:'rgba(255,255,255,0.08)', flexShrink:0 }}
+              style={{ borderColor:'rgba(255,255,255,0.2)', color:'#fff', background:'rgba(255,255,255,0.08)' }}
               onClick={() => setModal('drop')}>
               Drop Selection
             </Button>
           )}
         </div>
+      ) : (
+        <Alert type="warning" style={{ marginBottom:20 }}>
+          You have not been assigned to a team yet. Your supervisor will create a team and assign you. Once assigned, if you are the Team Leader you can select a project here.
+        </Alert>
+      )}
+
+      {/* Only leader can see the selection info */}
+      {isLeader && !teamProposal && (
+        <Alert type="info" style={{ marginBottom:16 }}>
+          As Team Leader, browse approved proposals below and click <strong>Select for My Team</strong> to claim one. First come, first served.
+        </Alert>
       )}
 
       <p className={styles.sectionSub} style={{ marginBottom:16 }}>
         {proposals.length} approved proposal{proposals.length!==1?'s':''} available in your department
       </p>
-
-      {!myProposal && (
-        <Alert type="info">Browse approved proposals below and click <strong>Select Project</strong> to claim one. First come, first served.</Alert>
-      )}
 
       <div style={{ display:'flex', gap:10, marginBottom:18, flexWrap:'wrap', alignItems:'center' }}>
         <div className={styles.searchBar}>
@@ -131,30 +145,28 @@ export default function BrowseProposals() {
 
       {loading ? <div style={{ padding:40, textAlign:'center', color:'var(--text-muted)' }}>Loading...</div>
       : filtered.length === 0 ? (
-        <div className={`${styles.card} ${styles.empty}`}>
-          <BookOpen size={32} style={{ opacity:0.3 }}/>
-          <p>No proposals found</p>
-        </div>
+        <div className={`${styles.card} ${styles.empty}`}><BookOpen size={32} style={{ opacity:0.3 }}/><p>No proposals found</p></div>
       ) : filtered.map(p => {
-        const taken  = isTaken(p.id)
-        const ismine = isMySelection(p.id)
+        const taken    = isTaken(p.id)
+        const isMyTeam = teamProposal?.id === p.id
         return (
-          <div key={p.id} className={`${styles.proposalCard} ${taken?styles.taken:''} ${ismine?styles.mine:''}`}
+          <div key={p.id} className={`${styles.proposalCard} ${taken?styles.taken:''} ${isMyTeam?styles.mine:''}`}
             onClick={() => { setSelected(p); setModal('detail') }}>
             <div className={styles.proposalCardHeader}>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, flexWrap:'wrap' }}>
-                  {ismine && <Badge status="selected"/>}
-                  {taken && <span style={{ fontSize:12, color:'var(--text-muted)' }}>Taken by another student</span>}
-                  {!ismine && !taken && <Badge status="approved"/>}
+                  {isMyTeam && <Badge status="selected"/>}
+                  {taken && !isMyTeam && <span style={{ fontSize:12, color:'var(--text-muted)' }}>Taken by another team</span>}
+                  {!isMyTeam && !taken && <Badge status="approved"/>}
                 </div>
                 <div className={styles.proposalCardTitle}>{p.title}</div>
                 <div className={styles.proposalCardCompany}>{p.companyName} · {p.department?.name}</div>
               </div>
-              {!taken && !ismine && !myProposal && (
+              {/* Only leader can select, only if team has no proposal yet */}
+              {isLeader && !taken && !isMyTeam && !teamProposal && (
                 <Button size="sm" variant="primary" style={{ flexShrink:0 }}
                   onClick={e => { e.stopPropagation(); setSelected(p); setModal('confirm') }}>
-                  Select Project
+                  Select for My Team
                 </Button>
               )}
             </div>
@@ -173,8 +185,8 @@ export default function BrowseProposals() {
         <Modal title="Proposal Details" size="lg" onClose={() => { setModal(null); setSelected(null) }}
           footer={<>
             <Button variant="ghost" onClick={() => { setModal(null); setSelected(null) }}>Close</Button>
-            {!myProposal && !isTaken(selected.id) && (
-              <Button variant="primary" onClick={() => setModal('confirm')}>Select This Project</Button>
+            {isLeader && !isTaken(selected.id) && teamProposal?.id !== selected.id && !teamProposal && (
+              <Button variant="primary" onClick={() => setModal('confirm')}>Select for My Team</Button>
             )}
           </>}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
@@ -207,7 +219,9 @@ export default function BrowseProposals() {
             <Button variant="ghost" onClick={() => setModal(null)}>Cancel</Button>
             <Button variant="success" onClick={handleSelect}><CheckCircle size={14}/> Confirm Selection</Button>
           </>}>
-          <Alert type="warning">Once confirmed, this project is <strong>reserved for you</strong>. You may drop it within <strong>7 days</strong>. After that your selection is locked.</Alert>
+          <Alert type="warning">
+            This project will be linked to <strong>{myTeam?.name}</strong>. You have <strong>7 days</strong> to change your selection. After that it is locked.
+          </Alert>
           <div style={{ padding:'14px 16px', background:'var(--bg)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)' }}>
             <div style={{ fontWeight:700, fontSize:14.5, fontFamily:'Space Grotesk', marginBottom:4 }}>{selected.title}</div>
             <div style={{ fontSize:13, color:'var(--text-muted)' }}>{selected.companyName}</div>
@@ -220,11 +234,11 @@ export default function BrowseProposals() {
         <Modal title="Drop Project Selection" onClose={() => setModal(null)}
           footer={<>
             <Button variant="ghost" onClick={() => setModal(null)}>Cancel</Button>
-            <Button variant="danger" onClick={handleDrop}>Drop Selection</Button>
+            {!locked && <Button variant="danger" onClick={handleDrop}>Drop Selection</Button>}
           </>}>
           {locked
             ? <Alert type="error">Your 7-day drop window has passed. Contact the FYP Administrator to request a change.</Alert>
-            : <Alert type="warning">Dropping will make <strong>"{myProposal?.title}"</strong> available for other students. You have <strong>{daysLeft} day{daysLeft!==1?'s':''}</strong> remaining in your drop window.</Alert>
+            : <Alert type="warning">Dropping will remove <strong>"{teamProposal?.title}"</strong> from {myTeam?.name}. You have <strong>{daysLeft} day{daysLeft!==1?'s':''}</strong> remaining.</Alert>
           }
         </Modal>
       )}

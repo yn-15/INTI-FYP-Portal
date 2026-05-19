@@ -168,6 +168,14 @@ export default function LecturerProposals() {
               <div style={{ fontSize:13.5, padding:'12px 14px', background:'var(--bg)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)', lineHeight:1.6 }}>{v}</div>
             </div>
           ))}
+          {getField(selected,'reviewFeedback','review_feedback') && (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:6 }}>Your Feedback</div>
+              <div style={{ fontSize:13.5, padding:'12px 14px', background:'#FFFBEB', borderRadius:'var(--radius-sm)', border:'1px solid #FDE68A', lineHeight:1.6 }}>
+                {getField(selected,'reviewFeedback','review_feedback')}
+              </div>
+            </div>
+          )}
         </Modal>
       )}
 
@@ -185,7 +193,7 @@ export default function LecturerProposals() {
             <div style={{ fontWeight:600, fontSize:14 }}>{selected.title}</div>
             <div style={{ fontSize:12.5, color:'var(--text-muted)' }}>{selected.companyName}</div>
           </div>
-          <Input label="Approval Feedback *" name="feedback" type="textarea" rows={4} value={feedback}
+          <Input label="Approval Feedback" name="feedback" type="textarea" rows={4} value={feedback}
             onChange={setFeedback} placeholder="Write feedback to the employer..." required/>
         </Modal>
       )}

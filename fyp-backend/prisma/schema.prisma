@@ -98,6 +98,7 @@ model Proposal {
   skillsNeeded     String?        @map("skills_needed")
   targetAudience   String?        @map("target_audience")
   practicalResources String?      @map("practical_resources")
+  attachmentUrl    String?        @map("attachment_url")
   status           ProposalStatus @default(pending)
   reviewFeedback   String?        @map("review_feedback")
   submittedAt      DateTime       @default(now()) @map("submitted_at")
@@ -127,8 +128,8 @@ model ProposalSelection {
   droppedAt  DateTime? @map("dropped_at")
   isLocked   Boolean   @default(false) @map("is_locked")
 
-  proposal   Proposal @relation(fields: [proposalId], references: [id])
-  proposalId Int      @unique @map("proposal_id")
+  proposal   Proposal? @relation(fields: [proposalId], references: [id])
+  proposalId Int?     @unique @map("proposal_id")
 
   student   User @relation(fields: [studentId], references: [id])
   studentId Int  @unique @map("student_id")
@@ -143,8 +144,8 @@ model Team {
   confirmed Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
 
-  proposal   Proposal @relation(fields: [proposalId], references: [id])
-  proposalId Int      @unique @map("proposal_id")
+  proposal   Proposal? @relation(fields: [proposalId], references: [id])
+  proposalId Int?     @unique @map("proposal_id")
 
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId Int        @map("department_id")
@@ -163,6 +164,8 @@ model TeamMember {
 
   student   User @relation(fields: [studentId], references: [id])
   studentId Int  @map("student_id")
+
+  isLeader  Boolean @default(false) @map("is_leader")
 
   @@id([teamId, studentId])
   @@map("team_members")
@@ -209,8 +212,8 @@ model ChatThread {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at")
 
-  proposal   Proposal @relation(fields: [proposalId], references: [id])
-  proposalId Int      @unique @map("proposal_id")
+  proposal   Proposal? @relation(fields: [proposalId], references: [id])
+  proposalId Int?     @unique @map("proposal_id")
 
   messages ChatMessage[]
 

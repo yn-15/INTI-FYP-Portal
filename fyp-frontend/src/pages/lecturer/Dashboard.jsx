@@ -1,133 +1,147 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { FileText, UsersRound, Bell, CheckCircle, Clock } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import StatCard from '../../components/ui/StatCard'
-import Badge from '../../components/ui/Badge'
-import Button from '../../components/ui/Button'
-import {
-  proposals, users, teams, teamMembers,
-  notifications, getDeptById
-} from '../../data/mockDB'
-import { formatDate, formatDateTime } from '../../utils/helpers'
+import { FileText, UsersRound, CheckCircle, MessageSquare } from 'lucide-react'
+import { api } from '../../utils/api'
 import styles from './Lecturer.module.css'
+import { formatDate } from '../../utils/helpers'
+import Badge from '../../components/ui/Badge'
 
-export default function LecturerDashboard() {
-  const { user }   = useAuth()
-  const navigate   = useNavigate()
-  const dept       = getDeptById(user.department_id)
+export default function LecturerReports() {
+  const { user } = useAuth()
+  const [proposals, setProposals] = useState([])
+  const [teams, setTeams]         = useState([])
+  const [students, setStudents]   = useState([])
+  const [loading, setLoading]     = useState(true)
 
-  // Filter everything to this lecturer's department
-  const myProposals   = proposals.filter(p => p.department_id === user.department_id)
-  const pending       = myProposals.filter(p => p.status === 'pending')
-  const approved      = myProposals.filter(p => p.status === 'approved')
-  const myTeams       = teams.filter(t => t.supervisor_id === user.id)
-  const myNotifs      = notifications.filter(n => n.created_by === user.id)
+  useEffect(() => {
+    async function load() {
+      try {
+        const [p, t, s] = await Promise.all([
+          api.getProposals(), api.getTeams(), api.getDeptStudents()
+        ])
+        setProposals(p)
+        setTeams(t)
+        setStudents(s)
+      } catch(e) { console.error(e) }
+      finally { setLoading(false) }
+    }
+    load()
+  }, [])
 
-  // Students in my department
-  const deptStudents  = users.filter(u => u.role === 'student' && u.department_id === user.department_id && u.status === 'active')
-  const assignedIds   = teamMembers.filter(m => myTeams.map(t => t.id).includes(m.team_id)).map(m => m.student_id)
-  const unassigned    = deptStudents.filter(s => !assignedIds.includes(s.id))
+  const deptName   = user.department_id === 1 ? 'IT' : 'Business'
+  const byStatus   = [
+    { label:'Pending',  count:proposals.filter(p=>p.status==='pending').length,  color:'#D97706' },
+    { label:'Approved', count:proposals.filter(p=>p.status==='approved').length, color:'#16A34A' },
+    { label:'Rejected', count:proposals.filter(p=>p.status==='rejected').length, color:'#DC2626' },
+  ]
+  const maxCount      = Math.max(...byStatus.map(s=>s.count), 1)
+  const assignedIds   = teams.flatMap(t => (t.members||[]).map(m => m.studentId||m.student?.id))
+  const unassigned    = students.filter(s => !assignedIds.includes(s.id))
+  const withThreads   = proposals.filter(p => p.chatThread)
+
+  if (loading) return <div className={styles.page}><p style={{ color:'var(--text-muted)' }}>Loading...</p></div>
 
   return (
     <div className={styles.page}>
-      <div style={{ marginBottom: 24 }}>
-        <h2 className={styles.welcomeTitle}>Welcome back, {user.first_name} 👋</h2>
-        <p className={styles.welcomeSub}>
-          {dept?.name} Department · Manage your proposals, teams and students
-        </p>
+      <p className={styles.sectionSub} style={{ marginBottom:24 }}>
+        {deptName} Department — analytics visible to you only
+      </p>
+
+      <div className={styles.statsGrid} style={{ marginBottom:24 }}>
+        <StatCard label="Total Proposals" value={proposals.length}     accent="#CC0000" icon={FileText}      sub={`${deptName} dept`}/>
+        <StatCard label="Approved"         value={proposals.filter(p=>p.status==='approved').length} accent="#16A34A" icon={CheckCircle}/>
+        <StatCard label="Active Teams"     value={teams.length}         accent="#7C3AED" icon={UsersRound}   sub={`${teams.filter(t=>t.confirmed).length} confirmed`}/>
+        <StatCard label="Active Chats"     value={withThreads.length}   accent="#2563EB" icon={MessageSquare} sub="With employers"/>
       </div>
 
-      {/* Stat cards */}
-      <div className={styles.statsGrid}>
-        <StatCard label="Pending Review"   value={pending.length}      accent="#D97706" icon={Clock}      sub="Awaiting your decision"/>
-        <StatCard label="Approved Projects" value={approved.length}     accent="#16A34A" icon={CheckCircle} sub="Available for selection"/>
-        <StatCard label="My Teams"          value={myTeams.length}       accent="#CC0000" icon={UsersRound} sub={`${myTeams.filter(t=>t.confirmed).length} confirmed`}/>
-        <StatCard label="Unassigned Students" value={unassigned.length} accent="#2563EB" icon={UsersRound} sub={`of ${deptStudents.length} total`}/>
-      </div>
-
-      <div className={styles.grid2} style={{ marginBottom: 20 }}>
-        {/* Pending proposals review queue */}
+      <div className={styles.grid2} style={{ marginBottom:20 }}>
+        {/* Pending reviews */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3 className={styles.cardTitle}>Pending Review</h3>
-            <button className={styles.cardLink} onClick={() => navigate('/lecturer/proposals')}>View all →</button>
           </div>
-          {pending.length === 0 ? (
+          {proposals.filter(p => p.status === 'pending').length === 0 ? (
             <div className={styles.empty}>
               <CheckCircle size={26} color="#16A34A"/>
               <p>No proposals pending review</p>
             </div>
-          ) : pending.map(p => {
-            const submitter = users.find(u => u.id === p.submitted_by)
-            return (
-              <div key={p.id} className={styles.proposalRow}>
-                <div className={styles.proposalInfo}>
-                  <div className={styles.proposalTitle}>{p.title}</div>
-                  <div className={styles.proposalMeta}>
-                    {submitter?.company_name || p.company_name} · {formatDate(p.submitted_at)}
-                  </div>
-                </div>
-                <div className={styles.proposalActions}>
-                  <Badge status="pending"/>
-                  <Button size="sm" variant="subtle" onClick={() => navigate('/lecturer/proposals')}>Review</Button>
-                </div>
+          ) : proposals.filter(p => p.status === 'pending').map(p => (
+            <div key={p.id} className={styles.proposalRow}>
+              <div className={styles.proposalInfo}>
+                <div className={styles.proposalTitle}>{p.title}</div>
+                <div className={styles.proposalMeta}>{p.companyName} · {formatDate(p.submittedAt)}</div>
               </div>
-            )
-          })}
+              <Badge status="pending"/>
+            </div>
+          ))}
         </div>
 
-        {/* My teams */}
+        {/* Students overview */}
         <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>My Teams</h3>
-            <button className={styles.cardLink} onClick={() => navigate('/lecturer/teams')}>Manage →</button>
-          </div>
-          {myTeams.length === 0 ? (
-            <div className={styles.empty}>
-              <UsersRound size={26} style={{ opacity: 0.3 }}/>
-              <p>No teams created yet</p>
-            </div>
-          ) : myTeams.map(t => {
-            const proposal  = proposals.find(p => p.id === t.proposal_id)
-            const members   = teamMembers.filter(m => m.team_id === t.id)
-            const memberUsers = members.map(m => users.find(u => u.id === m.student_id)).filter(Boolean)
-            return (
-              <div key={t.id} className={styles.proposalRow}>
-                <div className={styles.proposalInfo}>
-                  <div className={styles.proposalTitle}>{t.name}</div>
-                  <div className={styles.proposalMeta}>{proposal?.title || '—'} · {memberUsers.length} member{memberUsers.length !== 1 ? 's' : ''}</div>
-                </div>
-                <div className={styles.proposalActions}>
-                  <Badge status={t.confirmed ? 'confirmed' : 'draft'}/>
-                </div>
+          <div className={styles.cardHeader}><h3 className={styles.cardTitle}>Students Overview</h3></div>
+          {[
+            { label:'Total Active', count:students.length,    color:'#2563EB' },
+            { label:'Assigned',     count:assignedIds.length, color:'#16A34A' },
+            { label:'Unassigned',   count:unassigned.length,  color:'#CC0000' },
+          ].map(s => (
+            <div key={s.label} className={styles.reportBar}>
+              <span className={styles.reportBarLabel}>{s.label}</span>
+              <div className={styles.reportBarTrack}>
+                <div className={styles.reportBarFill}
+                  style={{ width:`${students.length?s.count/students.length*100:0}%`, background:s.color }}/>
               </div>
-            )
-          })}
+              <span className={styles.reportBarValue}>{s.count}</span>
+            </div>
+          ))}
+
+          <div style={{ marginTop:18, paddingTop:16, borderTop:'1px solid var(--border)' }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:12 }}>Teams</div>
+            {[
+              { label:'Total Teams', count:teams.length,                         color:'#2563EB' },
+              { label:'Confirmed',   count:teams.filter(t=>t.confirmed).length,  color:'#16A34A' },
+              { label:'Draft',       count:teams.filter(t=>!t.confirmed).length, color:'#D97706' },
+            ].map(s => (
+              <div key={s.label} className={styles.reportBar}>
+                <span className={styles.reportBarLabel}>{s.label}</span>
+                <div className={styles.reportBarTrack}>
+                  <div className={styles.reportBarFill}
+                    style={{ width:`${teams.length?s.count/teams.length*100:0}%`, background:s.color }}/>
+                </div>
+                <span className={styles.reportBarValue}>{s.count}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Recent activity */}
+      {/* Proposal detail table */}
       <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h3 className={styles.cardTitle}>Recent Proposals — {dept?.name} Department</h3>
-        </div>
+        <div className={styles.cardHeader}><h3 className={styles.cardTitle}>All Proposals — {deptName}</h3></div>
         <div className={styles.tableWrap} style={{ border:'none', borderRadius:0 }}>
           <table>
-            <thead><tr>
-              <th>Title</th><th>Company</th><th>Submitted</th><th>Status</th>
-            </tr></thead>
+            <thead><tr><th>Title</th><th>Company</th><th>Status</th><th>Team</th><th>Chat</th></tr></thead>
             <tbody>
-              {myProposals.slice(0, 5).map(p => (
-                <tr key={p.id} style={{ cursor:'pointer' }} onClick={() => navigate('/lecturer/proposals')}>
-                  <td><div className={styles.tdBold}>{p.title}</div></td>
-                  <td className={styles.tdMuted}>{p.company_name}</td>
-                  <td className={styles.tdMuted}>{formatDate(p.submitted_at)}</td>
-                  <td><Badge status={p.status}/></td>
+              {proposals.map(p => (
+                <tr key={p.id}>
+                  <td><div style={{ fontWeight:600 }}>{p.title}</div></td>
+                  <td style={{ color:'var(--text-muted)', fontSize:13 }}>{p.companyName}</td>
+                  <td>
+                    <span style={{ fontSize:12, fontWeight:600, textTransform:'capitalize',
+                      color:p.status==='approved'?'#16A34A':p.status==='rejected'?'#DC2626':'#D97706' }}>
+                      {p.status}
+                    </span>
+                  </td>
+                  <td style={{ color:'var(--text-muted)', fontSize:13 }}>{p.team?.name || '—'}</td>
+                  <td>
+                    {p.chatThread
+                      ? <span style={{ fontSize:12, color:'#16A34A', fontWeight:600 }}>● Active</span>
+                      : <span style={{ fontSize:12, color:'var(--text-muted)' }}>—</span>}
+                  </td>
                 </tr>
               ))}
-              {myProposals.length === 0 && (
-                <tr><td colSpan={4} style={{ textAlign:'center', padding:30, color:'var(--text-muted)' }}>No proposals in your department yet.</td></tr>
+              {proposals.length === 0 && (
+                <tr><td colSpan={5} style={{ textAlign:'center', padding:30, color:'var(--text-muted)' }}>No proposals in your department.</td></tr>
               )}
             </tbody>
           </table>

@@ -237,11 +237,45 @@ export const api = {
     return handleResponse(res)
   },
 
-  async assignMembers(teamId, studentIds) {
-    const res = await fetch(`${BASE}/teams/${teamId}/members`, {
+  async updateTeam(teamId, name) {
+    const res = await fetch(`${BASE}/teams/${teamId}`, {
       method: 'PUT',
       headers: authHeaders(),
-      body: JSON.stringify({ studentIds }),
+      body: JSON.stringify({ name }),
+    })
+    return handleResponse(res)
+  },
+
+  async deleteTeam(teamId) {
+    const res = await fetch(`${BASE}/teams/${teamId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+    return handleResponse(res)
+  },
+
+  async assignMembers(teamId, studentIds, leaderId) {
+    const res = await fetch(`${BASE}/teams/${teamId}/assign`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ studentIds, leaderId }),
+    })
+    return handleResponse(res)
+  },
+
+  async linkProposal(teamId, proposalId) {
+    const res = await fetch(`${BASE}/teams/${teamId}/link-proposal`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ proposalId }),
+    })
+    return handleResponse(res)
+  },
+
+  async unlinkProposal(teamId) {
+    const res = await fetch(`${BASE}/teams/${teamId}/link-proposal`, {
+      method: 'DELETE',
+      headers: authHeaders(),
     })
     return handleResponse(res)
   },
