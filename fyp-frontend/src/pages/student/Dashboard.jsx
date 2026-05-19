@@ -37,7 +37,8 @@ export default function StudentDashboard() {
         }
         // Non-leader — get proposal from team
         else if (team?.proposal) {
-          setMyProposal(team.proposal)
+          const p = await api.getProposalbyId(team.proposal.id)
+          setMyProposal(p)
         }
       } catch(e) { console.error(e) }
       finally { setLoading(false) }
