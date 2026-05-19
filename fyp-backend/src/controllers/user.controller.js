@@ -151,9 +151,11 @@ export async function rejectUser(req, res) {
     const user = await prisma.user.findUnique({ where: { id: parseInt(id) } })
     if (!user) return res.status(404).json({ error: 'User not found.' })
 
+    // Delete audit logs first to avoid foreign key constraint
+    await prisma.auditLog.deleteMany({ where: { userId: parseInt(id) } })
+
     await prisma.user.delete({ where: { id: parseInt(id) } })
 
-    // Log but don't crash if it fails
     try {
       await logAction({
         userId: req.user.id,
