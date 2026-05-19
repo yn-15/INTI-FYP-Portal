@@ -153,18 +153,21 @@ export async function rejectUser(req, res) {
 
     await prisma.user.delete({ where: { id: parseInt(id) } })
 
-    await logAction({
-      userId: req.user.id,
-      action: 'User Registration Rejected',
-      entityType: 'user',
-      entityId: parseInt(id),
-      details: { email: user.email, role: user.role },
-    })
+    // Log but don't crash if it fails
+    try {
+      await logAction({
+        userId: req.user.id,
+        action: 'User Registration Rejected',
+        entityType: 'user',
+        entityId: parseInt(id),
+        details: { email: user.email, role: user.role },
+      })
+    } catch(logErr) { console.error('Audit log failed:', logErr) }
 
     return res.json({ message: 'Registration rejected and removed.' })
   } catch (err) {
-    console.error(err)
-    return res.status(500).json({ error: 'Server error.' })
+    console.error('rejectUser error:', err)
+    return res.status(500).json({ error: err.message || 'Server error.' })
   }
 }
 
