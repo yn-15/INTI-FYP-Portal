@@ -4,7 +4,13 @@ import { logAction }    from '../utils/audit.js'
 const prisma = new PrismaClient()
 
 const TEAM_INCLUDE = {
-  proposal:   { select: { id:true, title:true, companyName:true } },
+  proposal: {
+    select: {
+      id:true, title:true, companyName:true, companyWebsite:true, companyCategory:true,
+      discipline:true, problemStatement:true, deliverables:true, technologies:true,
+      skillsNeeded:true, department:true,
+    },
+  },
   department: true,
   supervisor: { select: { id:true, firstName:true, lastName:true, email:true } },
   members: {
@@ -240,11 +246,12 @@ export async function linkProposal(req, res) {
       include: TEAM_INCLUDE,
     })
 
-    // Also create a proposal selection record
+    // Also create a proposal selection record with 7-day lock window (#9)
+    const lockExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     await prisma.proposalSelection.upsert({
       where:  { studentId: req.user.id },
-      update: { proposalId: parseInt(proposalId), droppedAt: null, isLocked: false, selectedAt: new Date() },
-      create: { proposalId: parseInt(proposalId), studentId: req.user.id },
+      update: { proposalId: parseInt(proposalId), droppedAt: null, isLocked: false, selectedAt: new Date(), lockExpiresAt },
+      create: { proposalId: parseInt(proposalId), studentId: req.user.id, lockExpiresAt },
     })
 
     await logAction({
