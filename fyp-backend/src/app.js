@@ -12,6 +12,7 @@ import notificationRoutes from './routes/notification.routes.js'
 import chatRoutes         from './routes/chat.routes.js'
 import reportRoutes       from './routes/report.routes.js'
 import auditRoutes        from './routes/audit.routes.js'
+import { startLockCron }  from './utils/lockCron.js'
 
 const app = express()
 
@@ -47,6 +48,9 @@ app.use('/api/audit',         auditRoutes)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
+
+// ── Start background jobs ─────────────────────────────────────────────────────
+startLockCron()  // 7-day proposal selection lock (#9)
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((req, res) => {
