@@ -1,6 +1,7 @@
 import bcrypt          from 'bcryptjs'
 import { PrismaClient } from '@prisma/client'
 import { logAction }    from '../utils/audit.js'
+import { sendApprovalEmail, sendRejectionEmail } from '../utils/email.js'
 
 const prisma = new PrismaClient()
 
@@ -136,6 +137,14 @@ export async function approveUser(req, res) {
       },
     })
 
+    // Send approval email (#1)
+    sendApprovalEmail({
+      email:          updated.email,
+      firstName:      updated.firstName,
+      role:           updated.role,
+      departmentName: deptName || null,
+    }).catch(err => console.error('[email] approval email failed:', err))
+
     return res.json(sanitizeUser(updated))
   } catch (err) {
     console.error(err)
@@ -150,6 +159,12 @@ export async function rejectUser(req, res) {
 
     const user = await prisma.user.findUnique({ where: { id: parseInt(id) } })
     if (!user) return res.status(404).json({ error: 'User not found.' })
+
+    // Send rejection email (#1) — fire and forget before user is deleted
+    sendRejectionEmail({
+      email:     user.email,
+      firstName: user.firstName,
+    }).catch(err => console.error('[email] rejection email failed:', err))
 
     // Delete audit logs first to avoid foreign key constraint
     await prisma.auditLog.deleteMany({ where: { userId: parseInt(id) } })
