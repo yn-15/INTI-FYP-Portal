@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Search, UserPlus, CheckCircle, XCircle, UserX, Edit2 } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Search, UserPlus, CheckCircle, XCircle, UserX, Edit2, Upload, Download } from 'lucide-react'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -11,6 +11,19 @@ import styles from './Admin.module.css'
 
 const STATUS_FILTERS = ['all','active','pending','deactivated']
 const ROLE_FILTERS   = ['all','admin','lecturer','student','employer']
+
+// Parse CSV text into array of objects using first row as header
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/)
+  if (lines.length < 2) throw new Error('CSV must have a header row and at least one data row.')
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
+  return lines.slice(1).map(line => {
+    const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''))
+    return Object.fromEntries(headers.map((h, i) => [h, values[i] || '']))
+  })
+}
+
+const CSV_TEMPLATE = `firstName,lastName,email,department\nJohn,Doe,john.doe@student.newinti.edu.my,IT\nJane,Smith,jane.smith@student.newinti.edu.my,Business`
 
 export default function UserManagement() {
   const [users, setUsers]       = useState([])
@@ -25,7 +38,14 @@ export default function UserManagement() {
   const [alert, setAlert]       = useState(null)
   const [newUser, setNewUser]   = useState({ first_name:'', last_name:'', email:'', password:'', role:'student', department_id:'', company_name:'' })
 
-  const showAlert = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 4000) }
+  // Bulk upload state
+  const fileInputRef            = useRef(null)
+  const [csvRows, setCsvRows]   = useState([])
+  const [csvError, setCsvError] = useState(null)
+  const [uploadResult, setUploadResult] = useState(null)
+  const [uploading, setUploading]       = useState(false)
+
+  const showAlert = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 5000) }
 
   const load = async () => {
     try {
@@ -39,7 +59,6 @@ export default function UserManagement() {
 
   useEffect(() => { load() }, [])
 
-  // Normalise backend snake_case/camelCase
   const normalise = u => ({
     ...u,
     first_name:    u.firstName    ?? u.first_name,
@@ -111,6 +130,49 @@ export default function UserManagement() {
     } catch (e) { showAlert('error', e.message) }
   }
 
+  // ── CSV Bulk Upload handlers ──────────────────────────────────────────────
+  const handleCSVFile = (e) => {
+    setCsvError(null); setCsvRows([]); setUploadResult(null)
+    const file = e.target.files[0]
+    if (!file) return
+    if (!file.name.endsWith('.csv')) { setCsvError('Please select a .csv file.'); return }
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const rows = parseCSV(ev.target.result)
+        if (rows.length === 0) { setCsvError('CSV file is empty.'); return }
+        setCsvRows(rows)
+      } catch (err) { setCsvError(err.message) }
+    }
+    reader.readAsText(file)
+  }
+
+  const handleBulkUpload = async () => {
+    if (!csvRows.length) return
+    setUploading(true); setUploadResult(null)
+    try {
+      const result = await api.bulkUploadStudents(csvRows)
+      setUploadResult(result)
+      if (result.results?.created?.length > 0) {
+        await load()  // refresh user list
+      }
+    } catch (e) { setCsvError(e.message) }
+    finally { setUploading(false) }
+  }
+
+  const downloadTemplate = () => {
+    const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url; a.download = 'student_upload_template.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const resetBulkModal = () => {
+    setCsvRows([]); setCsvError(null); setUploadResult(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const getDeptName = (id) => depts.find(d => d.id === id)?.name || '—'
   const set = key => val => setNewUser(p => ({ ...p, [key]: val }))
 
@@ -124,7 +186,12 @@ export default function UserManagement() {
           <Search size={15} color="var(--text-muted)"/>
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name or email..."/>
         </div>
-        <Button onClick={() => setModal('create')}><UserPlus size={15}/> Add User</Button>
+        <div style={{ display:'flex', gap:8 }}>
+          <Button variant="outline" onClick={() => { resetBulkModal(); setModal('bulk') }}>
+            <Upload size={15}/> Bulk Upload CSV
+          </Button>
+          <Button onClick={() => setModal('create')}><UserPlus size={15}/> Add User</Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -209,6 +276,135 @@ export default function UserManagement() {
         </table>
       </div>
 
+      {/* ── Bulk Upload CSV Modal ── */}
+      {modal === 'bulk' && (
+        <Modal title="Bulk Upload Students via CSV" size="lg"
+          onClose={() => { setModal(null); resetBulkModal() }}
+          footer={<>
+            <Button variant="ghost" onClick={() => { setModal(null); resetBulkModal() }}>Close</Button>
+            {csvRows.length > 0 && !uploadResult && (
+              <Button onClick={handleBulkUpload} disabled={uploading}>
+                <Upload size={14}/> {uploading ? 'Uploading…' : `Upload ${csvRows.length} Students`}
+              </Button>
+            )}
+          </>}>
+
+          {!uploadResult ? (
+            <>
+              <Alert type="info">
+                Upload a CSV file to create student accounts in bulk. Student emails must use the <code>@student.newinti.edu.my</code> domain. Accounts are created as active with a default password of <code>emailprefix@INTI</code> (e.g. <code>john.doe@INTI</code>). Students should change their password on first login.
+              </Alert>
+
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                <span style={{ fontSize:13, fontWeight:600 }}>Required columns: <code>firstName, lastName, email, department</code></span>
+                <Button size="sm" variant="outline" onClick={downloadTemplate}>
+                  <Download size={13}/> Download Template
+                </Button>
+              </div>
+
+              {/* Drop zone */}
+              <div
+                style={{ border:'2px dashed var(--border)', borderRadius:'var(--radius-md)', padding:'32px 20px', textAlign:'center', cursor:'pointer', marginBottom:16, background:'var(--bg)' }}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--red)' }}
+                onDragLeave={e => { e.currentTarget.style.borderColor='var(--border)' }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--border)'; const f=e.dataTransfer.files[0]; if(f){ fileInputRef.current.files=e.dataTransfer.files; handleCSVFile({target:{files:[f]}}) } }}>
+                <Upload size={24} style={{ color:'var(--text-muted)', marginBottom:8 }}/>
+                <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>
+                  {csvRows.length > 0 ? `✓ ${csvRows.length} rows loaded — click to replace` : 'Click or drag a CSV file here'}
+                </div>
+                <div style={{ fontSize:12.5, color:'var(--text-muted)' }}>CSV files only</div>
+                <input ref={fileInputRef} type="file" accept=".csv" onChange={handleCSVFile} style={{ display:'none' }}/>
+              </div>
+
+              {csvError && <Alert type="error">{csvError}</Alert>}
+
+              {/* Preview table */}
+              {csvRows.length > 0 && (
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:8 }}>
+                    Preview — first 5 rows of {csvRows.length}
+                  </div>
+                  <div style={{ overflowX:'auto' }}>
+                    <table style={{ width:'100%', fontSize:12.5, borderCollapse:'collapse' }}>
+                      <thead>
+                        <tr style={{ background:'var(--bg)' }}>
+                          {Object.keys(csvRows[0]).map(h => (
+                            <th key={h} style={{ padding:'6px 10px', textAlign:'left', borderBottom:'1px solid var(--border)', color:'var(--text-muted)', fontWeight:700 }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {csvRows.slice(0,5).map((row, i) => (
+                          <tr key={i}>
+                            {Object.values(row).map((v, j) => (
+                              <td key={j} style={{ padding:'6px 10px', borderBottom:'1px solid var(--border)', color:'var(--text-secondary)' }}>{v}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {csvRows.length > 5 && (
+                    <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:6 }}>...and {csvRows.length - 5} more rows</div>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            /* Upload results */
+            <div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:20 }}>
+                {[
+                  ['Created',  uploadResult.results.created.length,  '#16A34A'],
+                  ['Skipped',  uploadResult.results.skipped.length,  '#D97706'],
+                  ['Errors',   uploadResult.results.errors.length,   '#DC2626'],
+                ].map(([l,c,col]) => (
+                  <div key={l} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', padding:'14px 18px', textAlign:'center' }}>
+                    <div style={{ fontSize:28, fontWeight:700, color:col, fontFamily:'Space Grotesk' }}>{c}</div>
+                    <div style={{ fontSize:12, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginTop:4 }}>{l}</div>
+                  </div>
+                ))}
+              </div>
+
+              {uploadResult.results.errors.length > 0 && (
+                <div style={{ marginBottom:16 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:8 }}>Errors</div>
+                  {uploadResult.results.errors.map((e, i) => (
+                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:'var(--radius-sm)', marginBottom:4, color:'#DC2626' }}>
+                      Row {e.row} — {e.email}: {e.reason}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {uploadResult.results.skipped.length > 0 && (
+                <div style={{ marginBottom:16 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:8 }}>Skipped (already exists)</div>
+                  {uploadResult.results.skipped.map((s, i) => (
+                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius:'var(--radius-sm)', marginBottom:4, color:'#92400E' }}>
+                      Row {s.row} — {s.email}: {s.reason}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {uploadResult.results.created.length > 0 && (
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:8 }}>Successfully Created</div>
+                  {uploadResult.results.created.map((c, i) => (
+                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'#F0FDF4', border:'1px solid #86EFAC', borderRadius:'var(--radius-sm)', marginBottom:4, color:'#166534', display:'flex', justifyContent:'space-between' }}>
+                      <span>{c.name} — {c.email}</span>
+                      <span style={{ fontFamily:'monospace', opacity:0.7 }}>pw: {c.defaultPassword}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </Modal>
+      )}
+
       {/* Approve modal */}
       {modal === 'approve' && selected && (
         <Modal title="Approve Registration" onClose={() => { setModal(null); setSelected(null) }}
@@ -224,7 +420,7 @@ export default function UserManagement() {
             <div style={{ fontSize:12.5, color:'var(--text-muted)' }}>{selected.email} · <Badge status={selected.role}/></div>
           </div>
           {['student','lecturer'].includes(selected.role) && (
-            <Input label="Assign Department *" name="dept" type="select" value={deptId} onChange={setDeptId}
+            <Input label="Assign Department" name="dept" type="select" value={deptId} onChange={setDeptId}
               options={depts.map(d => ({ value:String(d.id), label:d.name }))} required/>
           )}
         </Modal>
