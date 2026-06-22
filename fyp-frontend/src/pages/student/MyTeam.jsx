@@ -102,6 +102,37 @@ export default function MyTeam() {
                   <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Space Grotesk', marginBottom:3 }}>{proposal.title}</div>
                   <div style={{ fontSize:12.5, color:'rgba(255,255,255,0.6)' }}>{proposal.companyName}</div>
                 </div>
+                {/* Project detail fields #10 */}
+                {[
+                  ['Company', proposal.companyName],
+                  ['Department', proposal.department?.name],
+                  ['Discipline', proposal.discipline],
+                  ['Company Category', proposal.companyCategory],
+                  ['Technologies', proposal.technologies],
+                  ['Skills Needed', proposal.skillsNeeded],
+                ].filter(([,v])=>v).map(([l,v]) => (
+                  <div key={l} style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:4 }}>{l}</div>
+                    <div style={{ fontSize:13, color:'var(--text-secondary)' }}>{v}</div>
+                  </div>
+                ))}
+                {proposal.problemStatement && (
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:4 }}>Problem Statement</div>
+                    <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6, padding:'10px 12px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)' }}>{proposal.problemStatement}</div>
+                  </div>
+                )}
+                {proposal.deliverables && (
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:4 }}>Expected Deliverables</div>
+                    <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6, padding:'10px 12px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)' }}>{proposal.deliverables}</div>
+                  </div>
+                )}
+                {proposal.companyWebsite && (
+                  <a href={proposal.companyWebsite} target="_blank" rel="noreferrer" style={{ fontSize:12.5, color:'var(--red)', textDecoration:'none', display:'block', marginTop:4 }}>
+                    🔗 {proposal.companyWebsite}
+                  </a>
+                )}
               </>
             ) : <p style={{ color:'var(--text-muted)', fontSize:13.5 }}>No proposal linked.</p>}
           </div>
