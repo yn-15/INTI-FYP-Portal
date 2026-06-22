@@ -147,6 +147,22 @@ export const api = {
     return handleResponse(res)
   },
 
+  // Bulk upload students from CSV (#8)
+  async bulkUploadStudents(students) {
+    const res = await fetch(`${BASE}/users/bulk-upload`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ students }),
+    })
+    return handleResponse(res)
+  },
+
+  // Disciplines (for dropdown — maps to department automatically)
+  async getDisciplines() {
+    const res = await fetch(`${BASE}/proposals/disciplines`, { headers: authHeaders() })
+    return handleResponse(res)
+  },
+
   // Proposals
   async getProposals(params = {}) {
     const qs = new URLSearchParams(params).toString()
@@ -168,6 +184,15 @@ export const api = {
     return handleResponse(res)
   },
 
+  async editProposal(id, data) {
+    const res = await fetch(`${BASE}/proposals/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    })
+    return handleResponse(res)
+  },
+
   async approveProposal(id, feedback) {
     const res = await fetch(`${BASE}/proposals/${id}/approve`, {
       method: 'PUT',
@@ -177,13 +202,18 @@ export const api = {
     return handleResponse(res)
   },
 
-  async rejectProposal(id, feedback) {
-    const res = await fetch(`${BASE}/proposals/${id}/reject`, {
+  // #4: renamed from rejectProposal — kept old name as alias for backwards compatibility
+  async returnProposal(id, feedback) {
+    const res = await fetch(`${BASE}/proposals/${id}/return`, {
       method: 'PUT',
       headers: authHeaders(),
       body: JSON.stringify({ feedback }),
     })
     return handleResponse(res)
+  },
+
+  async rejectProposal(id, feedback) {
+    return this.returnProposal(id, feedback)
   },
 
   async updateProposalDept(id, departmentId) {
