@@ -1,12 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Alert from '../../components/ui/Alert'
 import { api } from '../../utils/api'
-import { useState as useStateAlias } from 'react'
 import styles from './Employer.module.css'
+
+const COMPANY_CATEGORIES = [
+  'Sole Proprietorship',
+  'Partnership',
+  'Private Limited (Sdn. Bhd.)',
+  'Public Limited (Bhd.)',
+  'Small & Medium Enterprise (SME)',
+  'Business-to-Business (B2B)',
+  'Business-to-Consumer (B2C)',
+  'Limited Liability Company (LLC)',
+  'Multinational Corporation (MNC)',
+  'Government-Linked Company (GLC)',
+  'Non-Governmental Organisation (NGO)',
+  'Start-Up',
+  'Social Enterprise',
+  'Cooperative',
+  'Other',
+]
 
 export default function SubmitProposal() {
   const { user }  = useAuth()
@@ -16,22 +33,30 @@ export default function SubmitProposal() {
   const [error, setError]           = useState(null)
   const [file, setFile]             = useState(null)
   const [dragOver, setDragOver]     = useState(false)
+  const [disciplines, setDisciplines] = useState([])
+
+  useEffect(() => {
+    api.getDisciplines().then(setDisciplines).catch(() => {})
+  }, [])
 
   const empty = {
     title:'', company_name: user.company_name||'', company_website:'', company_category:'',
     project_champion:`${user.first_name} ${user.last_name}`, process_owner:'', inti_contact:'',
-    department_id:'', brief_profile:'', problem_statement:'', discipline:'', deliverables:'',
+    brief_profile:'', problem_statement:'', discipline:'', deliverables:'',
     technologies:'', skills_needed:'', target_audience:'', practical_resources:'',
   }
   const [form, setForm] = useState(empty)
   const [errors, setErrors] = useState({})
   const set = key => val => setForm(p => ({ ...p, [key]: val }))
 
+  const deptHint = form.discipline
+    ? `Maps to: ${disciplines.find(d => d.label === form.discipline)?.department || '—'} department`
+    : 'Select a discipline — department is assigned automatically'
+
   const validate = () => {
     const e = {}
     if (!form.title.trim())             e.title             = 'Required'
     if (!form.company_name.trim())      e.company_name      = 'Required'
-    if (!form.department_id)            e.department_id     = 'Required'
     if (!form.problem_statement.trim()) e.problem_statement = 'Required'
     if (!form.deliverables.trim())      e.deliverables      = 'Required'
     return e
@@ -53,7 +78,6 @@ export default function SubmitProposal() {
         projectChampion:    form.project_champion || null,
         processOwner:       form.process_owner || null,
         intiContact:        form.inti_contact || null,
-        departmentId:       parseInt(form.department_id),
         briefProfile:       form.brief_profile || null,
         problemStatement:   form.problem_statement,
         discipline:         form.discipline || null,
@@ -68,9 +92,6 @@ export default function SubmitProposal() {
     } catch(e) { setError(e.message) }
     finally { setSubmitting(false) }
   }
-
-  const [depts, setDepts] = useState([])
-  useState(() => { api.getDepartments().then(setDepts).catch(()=>{}) }, [])
 
   if (success) {
     return (
@@ -102,25 +123,27 @@ export default function SubmitProposal() {
         <div className={styles.formGrid2}>
           <Input label="Company Name" name="co" value={form.company_name} onChange={set('company_name')} placeholder="ABC Technologies Sdn. Bhd." required error={errors.company_name}/>
           <Input label="Company Website" name="web" value={form.company_website} onChange={set('company_website')} placeholder="https://"/>
-          <Input label="Company Category" name="cat" value={form.company_category} onChange={set('company_category')} placeholder="e.g. Technology, Retail"/>
+          <Input label="Company Category" name="cat" type="select" value={form.company_category} onChange={set('company_category')}
+            options={COMPANY_CATEGORIES.map(c=>({value:c,label:c}))}
+            hint="Select the category that best describes your company"/>
           <Input label="Project Champion" name="champ" value={form.project_champion} onChange={set('project_champion')} placeholder="Senior person leading this"/>
           <Input label="Process Owner" name="owner" value={form.process_owner} onChange={set('process_owner')} placeholder="Day-to-day contact"/>
           <Input label="INTI Staff Contact" name="inti" value={form.inti_contact} onChange={set('inti_contact')} placeholder="e.g. Dr. Robina Tinawin"/>
-          <Input label="Department" name="dept" type="select" value={form.department_id} onChange={set('department_id')} required error={errors.department_id}
-            options={depts.map(d=>({value:String(d.id),label:d.name}))} hint="Select the INTI department most relevant to your project"/>
         </div>
         <Input label="Company Profile" name="profile" type="textarea" rows={3} value={form.brief_profile} onChange={set('brief_profile')} placeholder="Describe your company..."/>
       </div>
 
       <div className={styles.formSection}>
         <div className={styles.formSectionTitle}>Section B — Project Details</div>
-        <Input label="Project Title *" name="title" value={form.title} onChange={set('title')} placeholder="A clear and descriptive project title" required error={errors.title}/>
-        <Input label="Problem Statement / Objectives *" name="ps" type="textarea" rows={5} value={form.problem_statement} onChange={set('problem_statement')} placeholder="What problem are you solving?" required error={errors.problem_statement}/>
+        <Input label="Project Title" name="title" value={form.title} onChange={set('title')} placeholder="A clear and descriptive project title" required error={errors.title}/>
+        <Input label="Problem Statement / Objectives" name="ps" type="textarea" rows={5} value={form.problem_statement} onChange={set('problem_statement')} placeholder="What problem are you solving?" required error={errors.problem_statement}/>
         <div className={styles.formGrid2}>
-          <Input label="Relevant Discipline" name="disc" value={form.discipline} onChange={set('discipline')} placeholder="e.g. Software Engineering"/>
+          <Input label="Relevant Discipline" name="disc" type="select" value={form.discipline} onChange={set('discipline')}
+            options={disciplines.map(d=>({value:d.label,label:d.label}))}
+            hint={deptHint}/>
           <Input label="Technologies Required" name="tech" value={form.technologies} onChange={set('technologies')} placeholder="e.g. React, Node.js, PostgreSQL"/>
         </div>
-        <Input label="Expected Deliverables *" name="del" type="textarea" rows={4} value={form.deliverables} onChange={set('deliverables')} placeholder="List all expected outputs..." required error={errors.deliverables}/>
+        <Input label="Expected Deliverables" name="del" type="textarea" rows={4} value={form.deliverables} onChange={set('deliverables')} placeholder="List all expected outputs..." required error={errors.deliverables}/>
         <div className={styles.formGrid2}>
           <Input label="Skills Needed" name="skills" value={form.skills_needed} onChange={set('skills_needed')} placeholder="e.g. Full-Stack, Data Visualisation"/>
           <Input label="Target Audience" name="audience" value={form.target_audience} onChange={set('target_audience')} placeholder="Who will use the final product?"/>
