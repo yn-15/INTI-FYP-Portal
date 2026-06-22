@@ -63,20 +63,23 @@ export default function AdminProposals() {
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search title or company..."/>
         </div>
         <div className={styles.filterTabs}>
-          {['all','pending','approved','rejected'].map(f => (
-            <button key={f} className={`${styles.filterTab} ${filter===f?styles.active:''}`} onClick={()=>setFilter(f)} style={{ textTransform:'capitalize' }}>{f==='all'?'All':f}</button>
+          {['all','pending','approved','returned_for_review'].map(f => (
+            <button key={f} className={`${styles.filterTab} ${filter===f?styles.active:''}`} onClick={()=>setFilter(f)} style={{ textTransform:'capitalize' }}>
+              {f==='all'?'All':f==='returned_for_review'?'Returned for Review':f}
+            </button>
           ))}
         </div>
       </div>
 
       <div className={styles.tableWrap}>
         <table>
-          <thead><tr><th>Title</th><th>Company</th><th>Department</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>ID</th><th>Title</th><th>Company</th><th>Department</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>Loading...</td></tr>
+              <tr><td colSpan={7} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>Loading...</td></tr>
             ) : filtered.map(p => (
               <tr key={p.id}>
+                <td style={{ fontSize:12, color:'var(--text-muted)', fontFamily:'monospace', fontWeight:600 }}>#{p.id}</td>
                 <td><div style={{ fontWeight:600, fontSize:13.5 }}>{p.title}</div></td>
                 <td style={{ color:'var(--text-muted)', fontSize:13 }}>{getField(p,'companyName','company_name')}</td>
                 <td style={{ color:'var(--text-muted)', fontSize:13 }}>{p.department?.name || '—'}</td>
@@ -92,7 +95,7 @@ export default function AdminProposals() {
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>No proposals found.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>No proposals found.</td></tr>
             )}
           </tbody>
         </table>
