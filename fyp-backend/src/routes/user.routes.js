@@ -6,6 +6,7 @@ import {
   getDepartments, createDepartment, deleteDepartment,
   getDeptStudents,
 } from '../controllers/user.controller.js'
+import { bulkUploadStudents } from '../controllers/bulkUpload.controller.js'
 import { authenticate } from '../middleware/auth.middleware.js'
 import { authorize }    from '../middleware/rbac.middleware.js'
 
@@ -24,6 +25,7 @@ router.get('/dept-students', authorize('lecturer', 'admin'), getDeptStudents)
 router.get('/',                      authorize('admin'), getAllUsers)
 router.get('/pending',               authorize('admin'), getPendingUsers)
 router.post('/',                     authorize('admin'), createUser)
+router.post('/bulk-upload',          authorize('admin'), bulkUploadStudents)   // #8: CSV bulk upload
 router.put('/:id/approve',           authorize('admin'), approveUser)
 router.put('/:id/reject',            authorize('admin'), rejectUser)
 router.put('/:id/deactivate',        authorize('admin'), deactivateUser)
