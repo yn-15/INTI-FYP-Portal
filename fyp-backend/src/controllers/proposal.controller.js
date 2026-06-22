@@ -1,8 +1,17 @@
 import { PrismaClient } from '@prisma/client'
 import { logAction }    from '../utils/audit.js'
+import { sendProposalReturnedEmail } from '../utils/email.js'
+import { getDepartmentForDiscipline } from '../utils/disciplines.js'
 
 const prisma = new PrismaClient()
 
+// ── Department lookup from discipline dropdown (#3) ───────────────────────────
+async function inferDepartmentId(discipline) {
+  const deptName = getDepartmentForDiscipline(discipline)
+  const depts    = await prisma.department.findMany()
+  const match    = depts.find(d => d.name.toLowerCase() === deptName.toLowerCase())
+  return match?.id || depts[0]?.id || 1
+}
 // ── GET /api/proposals ────────────────────────────────────────────────────────
 export async function getProposals(req, res) {
   try {
@@ -11,7 +20,6 @@ export async function getProposals(req, res) {
 
     const where = {}
 
-    // Role-based scoping
     if (role === 'lecturer') {
       where.departmentId = departmentId
     } else if (role === 'student') {
@@ -20,7 +28,6 @@ export async function getProposals(req, res) {
     } else if (role === 'employer') {
       where.submittedById = userId
     }
-    // admin sees all
 
     if (status && role !== 'student') where.status = status
 
@@ -55,19 +62,19 @@ export async function getProposalById(req, res) {
         submittedBy: { select: { id:true, firstName:true, lastName:true, companyName:true } },
         reviewedBy:  { select: { id:true, firstName:true, lastName:true } },
         selection:   { include: { student: { select: { id:true, firstName:true, lastName:true } } } },
-        team:        {
+        team: {
           include: {
             supervisor: { select: { id:true, firstName:true, lastName:true } },
             members: { include: { student: { select: { id:true, firstName:true, lastName:true } } } },
           },
         },
         chatThread: { include: { messages: { include: { sender: { select: { id:true, firstName:true, lastName:true, role:true } } }, orderBy: { sentAt: 'asc' } } } },
+        revisions:  { orderBy: { revisionNum: 'desc' }, take: 10 },
       },
     })
 
     if (!proposal) return res.status(404).json({ error: 'Proposal not found.' })
 
-    // Students can only see approved proposals in their department
     if (req.user.role === 'student') {
       if (proposal.departmentId !== req.user.departmentId || proposal.status !== 'approved') {
         return res.status(403).json({ error: 'Access denied.' })
@@ -85,20 +92,23 @@ export async function createProposal(req, res) {
   try {
     const {
       title, companyName, companyWebsite, companyCategory,
-      projectChampion, processOwner, intiContact, departmentId,
+      projectChampion, processOwner, intiContact,
       briefProfile, problemStatement, discipline, deliverables,
       technologies, skillsNeeded, targetAudience, practicalResources,
     } = req.body
 
-    if (!title || !problemStatement || !departmentId) {
-      return res.status(400).json({ error: 'Title, problem statement and department are required.' })
+    if (!title || !problemStatement) {
+      return res.status(400).json({ error: 'Title and problem statement are required.' })
     }
+
+    // Auto-infer department from discipline + skills (#3)
+    const departmentId = await inferDepartmentId(discipline)
 
     const proposal = await prisma.proposal.create({
       data: {
         title, companyName, companyWebsite, companyCategory,
         projectChampion, processOwner, intiContact,
-        departmentId: parseInt(departmentId),
+        departmentId,
         briefProfile, problemStatement, discipline, deliverables,
         technologies, skillsNeeded, targetAudience, practicalResources,
         submittedById: req.user.id,
@@ -122,6 +132,103 @@ export async function createProposal(req, res) {
   }
 }
 
+// ── PUT /api/proposals/:id ── (employer: edit when returned_for_review) ── #5 ─
+export async function editProposal(req, res) {
+  try {
+    const { id } = req.params
+    const {
+      title, companyName, companyWebsite, companyCategory,
+      projectChampion, processOwner, intiContact,
+      briefProfile, problemStatement, discipline, deliverables,
+      technologies, skillsNeeded, targetAudience, practicalResources,
+    } = req.body
+
+    const existing = await prisma.proposal.findUnique({
+      where: { id: parseInt(id) },
+      include: { revisions: true },
+    })
+    if (!existing) return res.status(404).json({ error: 'Proposal not found.' })
+
+    // Only the submitter can edit
+    if (existing.submittedById !== req.user.id) {
+      return res.status(403).json({ error: 'You can only edit your own proposals.' })
+    }
+
+    // Only editable when returned_for_review
+    if (existing.status !== 'returned_for_review') {
+      return res.status(400).json({ error: 'Proposal can only be edited when it has been returned for review.' })
+    }
+
+    // Snapshot current state as revision before overwriting
+    const revisionNum = (existing.revisions?.length || 0) + 1
+    await prisma.proposalRevision.create({
+      data: {
+        proposalId:  existing.id,
+        revisionNum,
+        changedById: req.user.id,
+        snapshot: {
+          title:              existing.title,
+          companyName:        existing.companyName,
+          companyWebsite:     existing.companyWebsite,
+          companyCategory:    existing.companyCategory,
+          problemStatement:   existing.problemStatement,
+          discipline:         existing.discipline,
+          deliverables:       existing.deliverables,
+          technologies:       existing.technologies,
+          skillsNeeded:       existing.skillsNeeded,
+          reviewFeedback:     existing.reviewFeedback,
+          status:             existing.status,
+        },
+      },
+    })
+
+    // Re-infer department from updated fields
+    const departmentId = await inferDepartmentId(discipline || existing.discipline)
+
+    // Update proposal — same ID, status resets to pending (resubmission)
+    const updated = await prisma.proposal.update({
+      where: { id: parseInt(id) },
+      data: {
+        title:              title              || existing.title,
+        companyName:        companyName        || existing.companyName,
+        companyWebsite:     companyWebsite     ?? existing.companyWebsite,
+        companyCategory:    companyCategory    ?? existing.companyCategory,
+        projectChampion:    projectChampion    ?? existing.projectChampion,
+        processOwner:       processOwner       ?? existing.processOwner,
+        intiContact:        intiContact        ?? existing.intiContact,
+        briefProfile:       briefProfile       ?? existing.briefProfile,
+        problemStatement:   problemStatement   || existing.problemStatement,
+        discipline:         discipline         ?? existing.discipline,
+        deliverables:       deliverables       || existing.deliverables,
+        technologies:       technologies       ?? existing.technologies,
+        skillsNeeded:       skillsNeeded       ?? existing.skillsNeeded,
+        targetAudience:     targetAudience     ?? existing.targetAudience,
+        practicalResources: practicalResources ?? existing.practicalResources,
+        departmentId,
+        status:       'pending',   // resubmitted → back to review queue
+        reviewFeedback: null,
+        reviewedById:   null,
+        reviewedAt:     null,
+        submittedAt:    new Date(), // refreshed timestamp
+      },
+      include: { department: true, submittedBy: { select: { id:true, firstName:true, lastName:true } } },
+    })
+
+    await logAction({
+      userId: req.user.id,
+      action: 'Proposal Resubmitted',
+      entityType: 'proposal',
+      entityId: updated.id,
+      details: { title: updated.title, revisionNum },
+    })
+
+    return res.json(updated)
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: 'Server error.' })
+  }
+}
+
 // ── PUT /api/proposals/:id/approve ── (lecturer) ──────────────────────────────
 export async function approveProposal(req, res) {
   try {
@@ -131,7 +238,6 @@ export async function approveProposal(req, res) {
     const proposal = await prisma.proposal.findUnique({ where: { id: parseInt(id) } })
     if (!proposal) return res.status(404).json({ error: 'Proposal not found.' })
 
-    // Lecturers can only review proposals in their department
     if (req.user.role === 'lecturer' && proposal.departmentId !== req.user.departmentId) {
       return res.status(403).json({ error: 'You can only review proposals in your department.' })
     }
@@ -150,7 +256,6 @@ export async function approveProposal(req, res) {
       },
     })
 
-    // Auto-create chat thread seeded with the feedback as first message
     const thread = await prisma.chatThread.create({
       data: {
         proposalId: updated.id,
@@ -178,14 +283,14 @@ export async function approveProposal(req, res) {
   }
 }
 
-// ── PUT /api/proposals/:id/reject ── (lecturer) ───────────────────────────────
-export async function rejectProposal(req, res) {
+// ── PUT /api/proposals/:id/return ── (lecturer) — was "reject" ── #4 ──────────
+export async function returnProposal(req, res) {
   try {
     const { id } = req.params
     const { feedback } = req.body
 
     if (!feedback?.trim()) {
-      return res.status(400).json({ error: 'Feedback is required when rejecting a proposal.' })
+      return res.status(400).json({ error: 'Feedback is required when returning a proposal for review.' })
     }
 
     const proposal = await prisma.proposal.findUnique({ where: { id: parseInt(id) } })
@@ -202,33 +307,43 @@ export async function rejectProposal(req, res) {
     const updated = await prisma.proposal.update({
       where: { id: parseInt(id) },
       data: {
-        status: 'rejected',
+        status: 'returned_for_review',
         reviewedById: req.user.id,
         reviewFeedback: feedback,
         reviewedAt: new Date(),
       },
     })
 
-    // Auto-create chat thread with rejection feedback as first message
-    await prisma.chatThread.create({
-      data: {
+    // Open a chat thread with the feedback so employer can see it
+    await prisma.chatThread.upsert({
+      where:  { proposalId: updated.id },
+      update: {},
+      create: {
         proposalId: updated.id,
         messages: {
-          create: {
-            senderId: req.user.id,
-            message: feedback,
-          },
+          create: { senderId: req.user.id, message: feedback },
         },
       },
     })
 
     await logAction({
       userId: req.user.id,
-      action: 'Proposal Rejected',
+      action: 'Proposal Returned for Review',
       entityType: 'proposal',
       entityId: updated.id,
       details: { feedback },
     })
+
+    // Send email notification to employer (#1)
+    const employer = await prisma.user.findUnique({ where: { id: updated.submittedById } })
+    if (employer) {
+      sendProposalReturnedEmail({
+        email:         employer.email,
+        firstName:     employer.firstName,
+        proposalTitle: updated.title,
+        feedback,
+      }).catch(err => console.error('[email] proposal returned email failed:', err))
+    }
 
     return res.json(updated)
   } catch (err) {
