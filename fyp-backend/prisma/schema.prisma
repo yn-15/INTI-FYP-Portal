@@ -71,6 +71,7 @@ model User {
   targetedNotifications   Notification[]  @relation("NotificationTargetUser")
   auditLogs           AuditLog[]
   notificationReads   NotificationRead[]
+  proposalRevisions   ProposalRevision[]
 
   @@map("users")
 }
@@ -79,7 +80,7 @@ model User {
 enum ProposalStatus {
   pending
   approved
-  rejected
+  returned_for_review
 }
 
 model Proposal {
@@ -118,16 +119,18 @@ model Proposal {
   selection   ProposalSelection?
   team        Team?
   chatThread  ChatThread?
+  revisions   ProposalRevision[]
 
   @@map("proposals")
 }
 
 // ── Proposal Selections ───────────────────────────────────────────────────────
 model ProposalSelection {
-  id         Int       @id @default(autoincrement())
-  selectedAt DateTime  @default(now()) @map("selected_at")
-  droppedAt  DateTime? @map("dropped_at")
-  isLocked   Boolean   @default(false) @map("is_locked")
+  id            Int       @id @default(autoincrement())
+  selectedAt    DateTime  @default(now()) @map("selected_at")
+  droppedAt     DateTime? @map("dropped_at")
+  isLocked      Boolean   @default(false) @map("is_locked")
+  lockExpiresAt DateTime? @map("lock_expires_at")
 
   proposal   Proposal? @relation(fields: [proposalId], references: [id])
   proposalId Int?     @unique @map("proposal_id")
@@ -136,6 +139,22 @@ model ProposalSelection {
   studentId Int  @unique @map("student_id")
 
   @@map("proposal_selections")
+}
+
+// ── Proposal Revisions ────────────────────────────────────────────────────────
+model ProposalRevision {
+  id          Int      @id @default(autoincrement())
+  revisionNum Int      @map("revision_num")
+  changedAt   DateTime @default(now()) @map("changed_at")
+  snapshot    Json     // Full proposal fields at time of revision
+
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+  proposalId Int      @map("proposal_id")
+
+  changedBy   User @relation(fields: [changedById], references: [id])
+  changedById Int  @map("changed_by")
+
+  @@map("proposal_revisions")
 }
 
 // ── Teams ─────────────────────────────────────────────────────────────────────
