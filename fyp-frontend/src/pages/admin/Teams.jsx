@@ -28,11 +28,11 @@ export default function AdminTeams() {
       </p>
 
       {/* Summary cards */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
+      <div className={styles.statsGrid3}>
         {[
-          { label:'Total Teams',       count:teams.length,  color:'#CC0000' },
-          { label:'Confirmed',         count:confirmed,     color:'#16A34A' },
-          { label:'Not Yet Confirmed', count:unconfirmed,   color:'#D97706' },
+          { label:'Total Teams',       count:teams.length,  color:'var(--red)' },
+          { label:'Confirmed',         count:confirmed,     color:'var(--success)' },
+          { label:'Not Yet Confirmed', count:unconfirmed,   color:'var(--warning)' },
         ].map(s => (
           <div key={s.label} style={{ background:'var(--card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', padding:'16px 20px' }}>
             <div style={{ fontSize:28, fontWeight:700, color:s.color, fontFamily:'Space Grotesk' }}>{loading?'—':s.count}</div>
@@ -123,7 +123,7 @@ export default function AdminTeams() {
           footer={<Button variant="ghost" onClick={() => setSelected(null)}>Close</Button>}>
 
           {/* Team info grid */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16 }}>
+          <div className={styles.detailGrid}>
             {[
               ['Team Name',   selected.name],
               ['Status',      null],
