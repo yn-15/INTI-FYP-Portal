@@ -4,10 +4,11 @@ import { BookOpen, UsersRound, Bell } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationContext'
 import StatCard from '../../components/ui/StatCard'
+import StatPanel from '../../components/ui/StatPanel'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import { api } from '../../utils/api'
-import { formatDate, getDaysUntilLock, isSelectionLocked } from '../../utils/helpers'
+import { getDaysUntilLock, isSelectionLocked } from '../../utils/helpers'
 import styles from './Student.module.css'
 
 export default function StudentDashboard() {
@@ -59,18 +60,18 @@ export default function StudentDashboard() {
         <p className={styles.welcomeSub}>Track your FYP progress here</p>
       </div>
 
-      <div className={styles.statsGrid} style={{ marginBottom:20 }}>
-        <StatCard label="My Project"    value={myProposal?'Assigned':'None'} accent={myProposal?'#16A34A':'#D97706'} icon={BookOpen}
+      <StatPanel>
+        <StatCard label="My Project"    value={myProposal?'Assigned':'None'} tone={myProposal?'live':'warning'} icon={BookOpen}
           sub={myProposal?myProposal.title?.slice(0,30)+'…':`${available} available`}/>
-        <StatCard label="My Team"       value={myTeam?myTeam.name:'Not Assigned'} accent={myTeam?'#CC0000':'#D97706'} icon={UsersRound}
+        <StatCard label="My Team"       value={myTeam?myTeam.name:'Not Assigned'} tone={myTeam?'live':'warning'} icon={UsersRound}
           sub={myTeam?(myTeam.confirmed?'Confirmed by supervisor':'Pending confirmation'):'Awaiting assignment'}/>
-        <StatCard label="Notifications" value={unreadCount} accent="#2563EB" icon={Bell}
+        <StatCard label="Notifications" value={unreadCount} tone="neutral" icon={Bell}
           sub={unreadCount>0?'Unread announcements':'All caught up'}/>
-      </div>
+      </StatPanel>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:20, alignItems:'stretch' }}>
+      <div className={styles.grid3}>
         {/* My Project + My Team */}
-        <div className={styles.card} style={{ gridColumn:'span 2', display:'flex', flexDirection:'column' }}>
+        <div className={styles.card} style={{ display:'flex', flexDirection:'column' }}>
           <div className={styles.cardHeader}>
             <h3 className={styles.cardTitle}>My Project</h3>
             <button className={styles.cardLink} onClick={() => navigate('/student/proposals')}>
@@ -80,11 +81,11 @@ export default function StudentDashboard() {
           {loading ? <p style={{ color:'var(--text-muted)', fontSize:13 }}>Loading...</p>
           : myProposal ? (
             <div style={{ flex:1 }}>
-              <div style={{ padding:'16px 18px', background:'linear-gradient(135deg,#1A1A1A,#2D0000)', borderRadius:'var(--radius-sm)', marginBottom:14 }}>
+              <div style={{ padding:'16px 18px', background:'linear-gradient(135deg,var(--black),var(--red-dark))', borderRadius:'var(--radius-sm)', marginBottom:14 }}>
                 <div style={{ fontSize:15, fontWeight:700, color:'#fff', fontFamily:'Space Grotesk', marginBottom:4 }}>{myProposal.title}</div>
                 <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)' }}>{myProposal.companyName}</div>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
+              <div className={styles.detailGrid3}>
                 {[['Department',myProposal.department?.name||'—'],['Discipline',myProposal.discipline||'—'],['Technologies',(myProposal.technologies||'').split(',').slice(0,2).join(', ')+'…']].map(([l,v]) => (
                   <div key={l} style={{ padding:'10px 12px', background:'var(--bg)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)' }}>
                     <div style={{ fontSize:11, color:'var(--text-muted)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:4 }}>{l}</div>
