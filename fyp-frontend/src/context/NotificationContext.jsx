@@ -8,6 +8,7 @@ export function NotificationProvider({ children }) {
   const { user } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount]     = useState(0)
+  const [loading, setLoading]             = useState(true)
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return
@@ -16,6 +17,7 @@ export function NotificationProvider({ children }) {
       setNotifications(data)
       setUnreadCount(data.filter(n => !n.isRead).length)
     } catch { /* silent */ }
+    finally { setLoading(false) }
   }, [user])
 
   // Fetch on mount and whenever user changes
@@ -48,7 +50,7 @@ export function NotificationProvider({ children }) {
 
   return (
     <NotificationContext.Provider value={{
-      notifications, unreadCount,
+      notifications, unreadCount, loading,
       fetchNotifications, markRead, markAllRead,
       // Legacy compat
       getUnread, getMyNotifs,
