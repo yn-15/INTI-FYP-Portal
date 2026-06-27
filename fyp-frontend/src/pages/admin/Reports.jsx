@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Users, FileText, UsersRound, Activity } from 'lucide-react'
 import StatCard from '../../components/ui/StatCard'
+import StatPanel from '../../components/ui/StatPanel'
 import { api } from '../../utils/api'
 import styles from './Admin.module.css'
 
@@ -37,13 +38,13 @@ export default function AdminReports() {
   const byRole = ['admin','lecturer','student','employer'].map(role => ({
     role,
     count: activeUsers.filter(u => u.role === role).length,
-    color: role==='admin'?'#CC0000':role==='lecturer'?'#2563EB':role==='student'?'#16A34A':'#7C3AED',
+    color: role==='admin'?'var(--red)':role==='lecturer'?'var(--info)':role==='student'?'var(--success)':'var(--warning)',
   }))
 
   const byStatus = [
-    { status:'pending',  color:'#D97706', count: proposals.filter(p=>p.status==='pending').length  },
-    { status:'approved', color:'#16A34A', count: proposals.filter(p=>p.status==='approved').length },
-    { status:'rejected', color:'#DC2626', count: proposals.filter(p=>p.status==='rejected').length },
+    { status:'pending',             label: 'Pending',             color:'var(--warning)', count: proposals.filter(p=>p.status==='pending').length  },
+    { status:'approved',            label: 'Approved',            color:'var(--success)', count: proposals.filter(p=>p.status==='approved').length },
+    { status:'returned_for_review', label: 'Returned for Review', color:'var(--corrective)', count: proposals.filter(p=>p.status==='returned_for_review').length },
   ]
 
   const byDept = depts.map((d, i) => ({
@@ -52,7 +53,7 @@ export default function AdminReports() {
     students:  activeUsers.filter(u => u.role==='student' && (u.departmentId||u.department_id)===d.id).length,
     teams:     teams.filter(t => (t.departmentId||t.department_id)===d.id).length,
     confirmed: teams.filter(t => (t.departmentId||t.department_id)===d.id && t.confirmed).length,
-    color:     i===0?'#CC0000':'#2563EB',
+    color:     i===0?'var(--red)':'var(--info)',
   }))
 
   const maxRole      = Math.max(...byRole.map(r=>r.count), 1)
@@ -72,12 +73,12 @@ export default function AdminReports() {
       <p className={styles.sectionSub} style={{ marginBottom:24 }}>System-wide analytics across all departments</p>
 
       {/* Stat cards */}
-      <div className={styles.statsGrid} style={{ marginBottom:24 }}>
-        <StatCard label="Active Users"    value={activeUsers.length}   accent="#CC0000" icon={Users}      sub={`${pendingUsers.length} pending`}/>
-        <StatCard label="Total Proposals" value={proposals.length}      accent="#2563EB" icon={FileText}   sub={`${byStatus[1].count} approved`}/>
-        <StatCard label="Active Teams"    value={teams.length}          accent="#16A34A" icon={UsersRound} sub={`${teams.filter(t=>t.confirmed).length} confirmed`}/>
-        <StatCard label="Audit Events"    value={auditCount}            accent="#7C3AED" icon={Activity}   sub="All time"/>
-      </div>
+      <StatPanel>
+        <StatCard label="Active Users"    value={activeUsers.length}   tone="neutral" icon={Users}      sub={`${pendingUsers.length} pending`}/>
+        <StatCard label="Total Proposals" value={proposals.length}      tone="neutral" icon={FileText}   sub={`${byStatus[1].count} approved`}/>
+        <StatCard label="Active Teams"    value={teams.length}          tone="neutral" icon={UsersRound} sub={`${teams.filter(t=>t.confirmed).length} confirmed`}/>
+        <StatCard label="Audit Events"    value={auditCount}            tone="live"    icon={Activity}   sub="All time"/>
+      </StatPanel>
 
       {/* Users + Proposals side by side */}
       <div className={styles.grid2} style={{ marginBottom:24 }}>
@@ -98,7 +99,7 @@ export default function AdminReports() {
           <h3 className={styles.cardTitle} style={{ marginBottom:18 }}>Proposals by Status</h3>
           {byStatus.map(s => (
             <div key={s.status} style={{ display:'flex', alignItems:'center', gap:14, marginBottom:14 }}>
-              <span style={{ fontSize:13.5, color:'var(--text-secondary)', width:80, flexShrink:0, textTransform:'capitalize' }}>{s.status}</span>
+              <span style={{ fontSize:13.5, color:'var(--text-secondary)', width:120, flexShrink:0 }}>{s.label}</span>
               <Bar count={s.count} max={maxStatus} color={s.color}/>
               <span style={{ fontSize:13.5, fontWeight:700, color:'var(--text-primary)', width:20, textAlign:'right', flexShrink:0 }}>{s.count}</span>
             </div>
