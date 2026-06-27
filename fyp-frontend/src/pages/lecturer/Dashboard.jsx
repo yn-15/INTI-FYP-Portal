@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import StatCard from '../../components/ui/StatCard'
+import StatPanel from '../../components/ui/StatPanel'
 import { FileText, UsersRound, CheckCircle, MessageSquare } from 'lucide-react'
 import { api } from '../../utils/api'
 import styles from './Lecturer.module.css'
@@ -30,12 +31,6 @@ export default function LecturerReports() {
   }, [])
 
   const deptName   = user.department_id === 1 ? 'IT' : 'Business'
-  const byStatus   = [
-    { label:'Pending',  count:proposals.filter(p=>p.status==='pending').length,  color:'#D97706' },
-    { label:'Approved', count:proposals.filter(p=>p.status==='approved').length, color:'#16A34A' },
-    { label:'Rejected', count:proposals.filter(p=>p.status==='rejected').length, color:'#DC2626' },
-  ]
-  const maxCount      = Math.max(...byStatus.map(s=>s.count), 1)
   const assignedIds   = teams.flatMap(t => (t.members||[]).map(m => m.studentId||m.student?.id))
   const unassigned    = students.filter(s => !assignedIds.includes(s.id))
   const withThreads   = proposals.filter(p => p.chatThread)
@@ -48,12 +43,12 @@ export default function LecturerReports() {
         {deptName} Department — analytics visible to you only
       </p>
 
-      <div className={styles.statsGrid} style={{ marginBottom:24 }}>
-        <StatCard label="Total Proposals" value={proposals.length}     accent="#CC0000" icon={FileText}      sub={`${deptName} dept`}/>
-        <StatCard label="Approved"         value={proposals.filter(p=>p.status==='approved').length} accent="#16A34A" icon={CheckCircle}/>
-        <StatCard label="Active Teams"     value={teams.length}         accent="#7C3AED" icon={UsersRound}   sub={`${teams.filter(t=>t.confirmed).length} confirmed`}/>
-        <StatCard label="Active Chats"     value={withThreads.length}   accent="#2563EB" icon={MessageSquare} sub="With employers"/>
-      </div>
+      <StatPanel>
+        <StatCard label="Total Proposals" value={proposals.length}     tone="neutral" icon={FileText}      sub={`${deptName} dept`}/>
+        <StatCard label="Approved"         value={proposals.filter(p=>p.status==='approved').length} tone="live" icon={CheckCircle}/>
+        <StatCard label="Active Teams"     value={teams.length}         tone="neutral" icon={UsersRound}   sub={`${teams.filter(t=>t.confirmed).length} confirmed`}/>
+        <StatCard label="Active Chats"     value={withThreads.length}   tone="neutral" icon={MessageSquare} sub="With employers"/>
+      </StatPanel>
 
       <div className={styles.grid2} style={{ marginBottom:20 }}>
         {/* Pending reviews */}
@@ -63,7 +58,7 @@ export default function LecturerReports() {
           </div>
           {proposals.filter(p => p.status === 'pending').length === 0 ? (
             <div className={styles.empty}>
-              <CheckCircle size={26} color="#16A34A"/>
+              <CheckCircle size={26} color="var(--success)"/>
               <p>No proposals pending review</p>
             </div>
           ) : proposals.filter(p => p.status === 'pending').map(p => (
@@ -81,9 +76,9 @@ export default function LecturerReports() {
         <div className={styles.card}>
           <div className={styles.cardHeader}><h3 className={styles.cardTitle}>Students Overview</h3></div>
           {[
-            { label:'Total Active', count:students.length,    color:'#2563EB' },
-            { label:'Assigned',     count:assignedIds.length, color:'#16A34A' },
-            { label:'Unassigned',   count:unassigned.length,  color:'#CC0000' },
+            { label:'Total Active', count:students.length,    color:'var(--info)' },
+            { label:'Assigned',     count:assignedIds.length, color:'var(--success)' },
+            { label:'Unassigned',   count:unassigned.length,  color:'var(--red)' },
           ].map(s => (
             <div key={s.label} className={styles.reportBar}>
               <span className={styles.reportBarLabel}>{s.label}</span>
@@ -98,9 +93,9 @@ export default function LecturerReports() {
           <div style={{ marginTop:18, paddingTop:16, borderTop:'1px solid var(--border)' }}>
             <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:12 }}>Teams</div>
             {[
-              { label:'Total Teams', count:teams.length,                         color:'#2563EB' },
-              { label:'Confirmed',   count:teams.filter(t=>t.confirmed).length,  color:'#16A34A' },
-              { label:'Draft',       count:teams.filter(t=>!t.confirmed).length, color:'#D97706' },
+              { label:'Total Teams', count:teams.length,                         color:'var(--info)' },
+              { label:'Confirmed',   count:teams.filter(t=>t.confirmed).length,  color:'var(--success)' },
+              { label:'Draft',       count:teams.filter(t=>!t.confirmed).length, color:'var(--warning)' },
             ].map(s => (
               <div key={s.label} className={styles.reportBar}>
                 <span className={styles.reportBarLabel}>{s.label}</span>
@@ -127,15 +122,15 @@ export default function LecturerReports() {
                   <td><div style={{ fontWeight:600 }}>{p.title}</div></td>
                   <td style={{ color:'var(--text-muted)', fontSize:13 }}>{p.companyName}</td>
                   <td>
-                    <span style={{ fontSize:12, fontWeight:600, textTransform:'capitalize',
-                      color:p.status==='approved'?'#16A34A':p.status==='rejected'?'#DC2626':'#D97706' }}>
-                      {p.status}
+                    <span style={{ fontSize:12, fontWeight:600,
+                      color:p.status==='approved'?'var(--success)':p.status==='returned_for_review'?'var(--corrective)':'var(--warning)' }}>
+                      {p.status === 'returned_for_review' ? 'Returned for Review' : p.status}
                     </span>
                   </td>
                   <td style={{ color:'var(--text-muted)', fontSize:13 }}>{p.team?.name || '—'}</td>
                   <td>
                     {p.chatThread
-                      ? <span style={{ fontSize:12, color:'#16A34A', fontWeight:600 }}>● Active</span>
+                      ? <span style={{ fontSize:12, color:'var(--success)', fontWeight:600 }}>● Active</span>
                       : <span style={{ fontSize:12, color:'var(--text-muted)' }}>—</span>}
                   </td>
                 </tr>
