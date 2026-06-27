@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Search, BookOpen, CheckCircle, Crown } from 'lucide-react'
-import { useAuth } from '../../context/AuthContext'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
 import Alert from '../../components/ui/Alert'
 import { api } from '../../utils/api'
-import { formatDate, getDaysUntilLock, isSelectionLocked } from '../../utils/helpers'
+import { getDaysUntilLock, isSelectionLocked } from '../../utils/helpers'
 import styles from './Student.module.css'
 
 export default function BrowseProposals() {
-  const { user }    = useAuth()
   const [proposals, setProposals]   = useState([])
   const [myTeam, setMyTeam]         = useState(null)
   const [filter, setFilter]         = useState('all')
@@ -32,7 +30,7 @@ export default function BrowseProposals() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps -- load() runs once on mount by design
 
   const isLeader     = myTeam?.isLeader === true
   const teamProposal = myTeam?.proposal
@@ -89,8 +87,8 @@ export default function BrowseProposals() {
 
       {/* Team + role info banner */}
       {myTeam ? (
-        <div style={{ padding:'14px 18px', background: isLeader?'linear-gradient(135deg,#1A1A1A,#2D0000)':'var(--card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', marginBottom:20, display:'flex', alignItems:'center', gap:14 }}>
-          {isLeader && <Crown size={20} color="#D97706"/>}
+        <div style={{ padding:'14px 18px', background: isLeader?'linear-gradient(135deg,var(--black),var(--red-dark))':'var(--card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', marginBottom:20, display:'flex', alignItems:'center', gap:14 }}>
+          {isLeader && <Crown size={20} color="var(--warning)"/>}
           <div style={{ flex:1 }}>
             <div style={{ fontSize:13.5, fontWeight:700, color: isLeader?'#fff':'var(--text-primary)', marginBottom:3 }}>
               {isLeader ? `You are the Team Leader of ${myTeam.name}` : `You are a member of ${myTeam.name}`}
@@ -189,7 +187,7 @@ export default function BrowseProposals() {
               <Button variant="primary" onClick={() => setModal('confirm')}>Select for My Team</Button>
             )}
           </>}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+          <div className={styles.detailGrid}>
             {[['Title',selected.title],['Company',selected.companyName],['Discipline',selected.discipline||'—'],['Technologies',selected.technologies||'—']].map(([l,v]) => (
               <div key={l} style={{ padding:'10px 14px', background:'var(--bg)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)' }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:3 }}>{l}</div>
@@ -206,7 +204,7 @@ export default function BrowseProposals() {
           {selected.reviewFeedback && (
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:6 }}>Supervisor Note</div>
-              <div style={{ fontSize:13.5, padding:'12px 14px', background:'#F0FDF4', borderRadius:'var(--radius-sm)', border:'1px solid #86EFAC', lineHeight:1.6 }}>{selected.reviewFeedback}</div>
+              <div style={{ fontSize:13.5, padding:'12px 14px', background:'var(--success-faint)', borderRadius:'var(--radius-sm)', border:'1px solid var(--success-border)', lineHeight:1.6 }}>{selected.reviewFeedback}</div>
             </div>
           )}
         </Modal>
