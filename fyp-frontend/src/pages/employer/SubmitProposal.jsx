@@ -97,7 +97,7 @@ export default function SubmitProposal() {
     return (
       <div className={styles.page}>
         <div style={{ textAlign:'center', padding:'60px 20px', maxWidth:500, margin:'0 auto' }}>
-          <div style={{ width:72, height:72, borderRadius:'50%', background:'#F0FDF4', border:'1px solid #86EFAC', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:30 }}>✓</div>
+          <div style={{ width:72, height:72, borderRadius:'50%', background:'var(--success-faint)', border:'1px solid var(--success-border)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:30 }}>✓</div>
           <h2 style={{ fontFamily:'Space Grotesk', fontSize:22, fontWeight:700, marginBottom:12 }}>Proposal Submitted!</h2>
           <p style={{ fontSize:14, color:'var(--text-secondary)', lineHeight:1.65, marginBottom:24 }}>
             Your proposal <strong>"{form.title}"</strong> has been submitted and is pending review by an INTI supervisor.
