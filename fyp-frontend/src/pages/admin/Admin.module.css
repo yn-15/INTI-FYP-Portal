@@ -57,11 +57,26 @@
   margin-bottom: 20px;
 }
 
+.statsGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 /* ── Two col grid ── */
 .grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .statsGrid, .statsGrid3 { grid-template-columns: repeat(2, 1fr); }
+  .grid2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .statsGrid, .statsGrid3 { grid-template-columns: 1fr; }
 }
 
 /* ── Card ── */
@@ -290,7 +305,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #1A1A1A;
+  background: var(--black);
   color: #fff;
   display: flex;
   align-items: center;
@@ -381,6 +396,14 @@
   border: 1px solid var(--border);
   overflow: hidden;
 }
+@media (max-width: 900px) {
+  .tableWrap {
+    overflow-x: auto;
+  }
+  .tableWrap table {
+    min-width: 640px;
+  }
+}
 
 table {
   width: 100%;
@@ -389,7 +412,7 @@ table {
 }
 
 thead tr {
-  background: #1A1A1A;
+  background: var(--black);
 }
 
 th {
@@ -413,7 +436,7 @@ tr:last-child td {
 }
 
 tr:hover td {
-  background: #FAFAFA;
+  background: var(--card-hover);
 }
 
 .tdMuted {
@@ -464,6 +487,9 @@ tr:hover td {
   grid-template-columns: 1fr 1fr;
   gap: 0 16px;
 }
+@media (max-width: 700px) {
+  .formGrid2 { grid-template-columns: 1fr; }
+}
 
 /* ── Proposal detail ── */
 .detailGrid {
@@ -471,6 +497,9 @@ tr:hover td {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 16px;
+}
+@media (max-width: 560px) {
+  .detailGrid { grid-template-columns: 1fr; }
 }
 
 .detailItem {
@@ -523,10 +552,10 @@ tr:hover td {
   background: var(--card);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--red);
-  padding: 16px 20px;
-  margin-bottom: 12px;
+  padding: var(--sp-4) var(--sp-5);
+  margin-bottom: var(--sp-3);
 }
+.notifCard.unread { border-left: 3px solid var(--red); }
 
 .notifTitle {
   font-size: 15px;
