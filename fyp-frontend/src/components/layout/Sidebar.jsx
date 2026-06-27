@@ -44,7 +44,7 @@ const NAV = {
   ],
 }
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose = () => {} }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -58,49 +58,59 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className={styles.sidebar}>
-      {/* Logo */}
-      <div className={styles.logoArea}>
-        <img src="/IICS-logo-red.svg" alt="INTI International College Subang" className={styles.logo} />
-      </div>
+    <>
+      {/* Backdrop — only rendered/visible on mobile/tablet when drawer is open */}
+      <div
+        className={`${styles.backdrop} ${open ? styles.backdropVisible : ''}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      {/* User info */}
-      <div className={styles.userArea}>
-        <div className={styles.userInitials}>
-          {user.first_name[0]}{user.last_name[0]}
+      <aside className={`${styles.sidebar} ${open ? styles.open : ''}`}>
+        {/* Logo */}
+        <div className={styles.logoArea}>
+          <img src="/IICS-logo-red.svg" alt="INTI International College Subang" className={styles.logo} />
         </div>
-        <div className={styles.userInfo}>
-          <span className={styles.userName}>{user.first_name} {user.last_name}</span>
-          <span className={styles.userRole}>
-            {user.role === 'employer' ? 'Industry Partner' : user.role === 'lecturer' ? 'Lecturer / Supervisor' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-          </span>
+
+        {/* User info */}
+        <div className={styles.userArea}>
+          <div className={styles.userInitials}>
+            {user.first_name[0]}{user.last_name[0]}
+          </div>
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>{user.first_name} {user.last_name}</span>
+            <span className={styles.userRole}>
+              {user.role === 'employer' ? 'Industry Partner' : user.role === 'lecturer' ? 'Lecturer / Supervisor' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className={styles.nav}>
-        {links.map(link => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.to === `/${user.role}`}
-            className={({ isActive }) =>
-              `${styles.navItem} ${isActive ? styles.active : ''}`
-            }
-          >
-            <link.icon size={17} className={styles.navIcon} />
-            <span>{link.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+        {/* Navigation */}
+        <nav className={styles.nav}>
+          {links.map(link => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.to === `/${user.role}`}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `${styles.navItem} ${isActive ? styles.active : ''}`
+              }
+            >
+              <link.icon size={17} className={styles.navIcon} />
+              <span>{link.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
-      {/* Logout */}
-      <div className={styles.footer}>
-        <button className={styles.logoutBtn} onClick={handleLogout}>
-          <LogOut size={16} />
-          <span>Log Out</span>
-        </button>
-      </div>
-    </aside>
+        {/* Logout */}
+        <div className={styles.footer}>
+          <button className={styles.logoutBtn} onClick={handleLogout}>
+            <LogOut size={16} />
+            <span>Log Out</span>
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }
