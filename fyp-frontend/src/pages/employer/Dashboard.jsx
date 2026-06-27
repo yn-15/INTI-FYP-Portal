@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { FileText, CheckCircle, Clock, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import StatCard from '../../components/ui/StatCard'
+import StatPanel from '../../components/ui/StatPanel'
+import Stepper from '../../components/ui/Stepper'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import { api } from '../../utils/api'
@@ -25,7 +27,19 @@ export default function EmployerDashboard() {
   const pending    = proposals.filter(p => p.status === 'pending')
   const approved   = proposals.filter(p => p.status === 'approved')
   const withThread = proposals.filter(p => p.chatThread)
-  const statusColor = { pending:'#D97706', approved:'#16A34A', rejected:'#DC2626' }
+
+  // Determine which workflow stage to highlight as "current" based on the
+  // most recently submitted proposal's actual state — reflects real progress,
+  // not generic static instructions.
+  const mostRecent = proposals[0]
+  const teamAssigned = approved.some(p => p.team?.confirmed)
+  const stepStatuses = (() => {
+    if (proposals.length === 0)      return ['current', 'upcoming', 'upcoming', 'upcoming']
+    if (teamAssigned)                return ['done', 'done', 'done', 'done']
+    if (approved.length > 0)         return ['done', 'done', 'current', 'upcoming']
+    if (mostRecent?.status === 'returned_for_review') return ['done', 'current', 'upcoming', 'upcoming']
+    return ['done', 'current', 'upcoming', 'upcoming'] // pending review
+  })()
 
   return (
     <div className={styles.page}>
@@ -35,15 +49,15 @@ export default function EmployerDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className={styles.statsGrid4} style={{ marginBottom: 20 }}>
-        <StatCard label="Total Submitted"  value={loading?'—':proposals.length} accent="#7C3AED" icon={FileText}      sub="All time"/>
-        <StatCard label="Pending Review"   value={loading?'—':pending.length}   accent="#D97706" icon={Clock}         sub="Awaiting supervisor"/>
-        <StatCard label="Approved"         value={loading?'—':approved.length}  accent="#16A34A" icon={CheckCircle}   sub="Available for selection"/>
-        <StatCard label="Active Chats"     value={loading?'—':withThread.length} accent="#2563EB" icon={MessageSquare} sub="With supervisors"/>
-      </div>
+      <StatPanel>
+        <StatCard label="Total Submitted"  value={loading?'—':proposals.length} tone="neutral" icon={FileText}      sub="All time"/>
+        <StatCard label="Pending Review"   value={loading?'—':pending.length}   tone="neutral" icon={Clock}         sub="Awaiting supervisor"/>
+        <StatCard label="Approved"         value={loading?'—':approved.length}  tone="live"    icon={CheckCircle}   sub="Available for selection"/>
+        <StatCard label="Active Chats"     value={loading?'—':withThread.length} tone="neutral" icon={MessageSquare} sub="With supervisors"/>
+      </StatPanel>
 
       {/* 2-col — My Proposals + Active Conversations */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20, alignItems:'stretch' }}>
+      <div className={styles.grid2}>
 
         {/* My Proposals */}
         <div className={styles.card} style={{ display:'flex', flexDirection:'column' }}>
@@ -64,12 +78,12 @@ export default function EmployerDashboard() {
                 const hasTeam = p.team?.confirmed
                 return (
                   <div key={p.id} style={{ padding:'12px 0', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', gap:12 }}>
-                    <div style={{ width:3, minHeight:38, borderRadius:2, background:statusColor[p.status]||'#D1D5DB', flexShrink:0, marginTop:2 }}/>
+                    <div style={{ width:3, minHeight:38, borderRadius:2, background: p.status === 'approved' ? 'var(--success)' : p.status === 'returned_for_review' ? 'var(--corrective)' : 'var(--border-dark)', flexShrink:0, marginTop:2 }}/>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', marginBottom:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</div>
                       <div style={{ fontSize:11.5, color:'var(--text-muted)', display:'flex', gap:6, flexWrap:'wrap' }}>
                         <span>{p.department?.name}</span><span>·</span><span>{formatDate(p.submittedAt)}</span>
-                        {hasTeam && <span style={{ color:'#16A34A', fontWeight:600 }}>· Team assigned ✓</span>}
+                        {hasTeam && <span style={{ color:'var(--success)', fontWeight:600 }}>· Team assigned ✓</span>}
                       </div>
                     </div>
                     <Badge status={p.status}/>
@@ -106,7 +120,7 @@ export default function EmployerDashboard() {
                 return (
                   <div key={p.id} onClick={() => navigate('/employer/chat')}
                     style={{ padding:'12px 0', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
-                    <div style={{ width:38, height:38, borderRadius:'50%', background:'#134770', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0 }}>
+                    <div style={{ width:38, height:38, borderRadius:'50%', background:'var(--black)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0 }}>
                       {reviewer ? `${reviewer.firstName[0]}${reviewer.lastName[0]}` : 'DR'}
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
@@ -115,7 +129,7 @@ export default function EmployerDashboard() {
                         {reviewer ? `Dr. ${reviewer.firstName} ${reviewer.lastName}` : 'Supervisor'}
                       </div>
                     </div>
-                    <span style={{ fontSize:12, color:'#16A34A', fontWeight:600, flexShrink:0 }}>● Active</span>
+                    <span style={{ fontSize:12, color:'var(--success)', fontWeight:600, flexShrink:0 }}>● Active</span>
                   </div>
                 )
               })}
@@ -124,25 +138,25 @@ export default function EmployerDashboard() {
         </div>
       </div>
 
-      {/* How It Works */}
+      {/* Workflow progress */}
       <div className={styles.card}>
         <div className={styles.cardHeader}>
-          <h3 className={styles.cardTitle}>How It Works</h3>
+          <h3 className={styles.cardTitle}>How it works</h3>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
-          {[
-            { step:'1', title:'Submit Proposal',    desc:'Fill in the project brief form with your company and project details.',               color:'#7C3AED', bg:'rgba(124,58,237,0.08)', border:'rgba(124,58,237,0.15)' },
-            { step:'2', title:'Supervisor Reviews', desc:'An INTI lecturer reviews your proposal and approves or rejects it.',                  color:'#2563EB', bg:'rgba(37,99,235,0.08)',  border:'rgba(37,99,235,0.15)'  },
-            { step:'3', title:'Students Select',    desc:'Approved proposals become available for IT or Business students to claim.',           color:'#D97706', bg:'rgba(217,119,6,0.08)',  border:'rgba(217,119,6,0.15)'  },
-            { step:'4', title:'Team Assigned',      desc:'Once a team is confirmed, you can view the students and supervisor assigned.',        color:'#16A34A', bg:'rgba(22,163,74,0.08)',  border:'rgba(22,163,74,0.15)'  },
-          ].map(s => (
-            <div key={s.step} style={{ padding:'18px 16px', background:s.bg, borderRadius:'var(--radius-md)', border:`1px solid ${s.border}` }}>
-              <div style={{ width:32, height:32, borderRadius:'50%', background:s.color, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, marginBottom:12 }}>{s.step}</div>
-              <div style={{ fontSize:13.5, fontWeight:700, color:'var(--text-primary)', fontFamily:'Space Grotesk', marginBottom:6 }}>{s.title}</div>
-              <div style={{ fontSize:12.5, color:'var(--text-muted)', lineHeight:1.55 }}>{s.desc}</div>
-            </div>
-          ))}
-        </div>
+        <Stepper
+          steps={[
+            { title: 'Submit proposal',    desc: 'Project brief with company and project details.', status: stepStatuses[0] },
+            {
+              title: 'Supervisor reviews',
+              desc: mostRecent?.status === 'returned_for_review'
+                ? 'Returned — revise and resubmit.'
+                : 'An INTI lecturer reviews and approves, or returns it for revision.',
+              status: stepStatuses[1],
+            },
+            { title: 'Students select',    desc: 'Approved proposals become available for IT or Business students to claim.', status: stepStatuses[2] },
+            { title: 'Team assigned',      desc: 'Once a team is confirmed, view the students and supervisor assigned.', status: stepStatuses[3] },
+          ]}
+        />
       </div>
     </div>
   )
