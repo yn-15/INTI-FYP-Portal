@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
-import Button from './Button'
 import styles from './Modal.module.css'
 
 export default function Modal({
@@ -23,7 +22,7 @@ export default function Modal({
         {/* Header */}
         <div className={styles.header}>
           <h3 className={styles.title}>{title}</h3>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Close dialog">
             <X size={18} />
           </button>
         </div>

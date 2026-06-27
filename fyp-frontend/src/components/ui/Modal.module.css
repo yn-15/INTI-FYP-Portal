@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(24, 18, 15, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,14 +40,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px 16px;
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .title {
-  font-size: 17px;
-  font-weight: 700;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--fs-h2);
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -69,15 +70,20 @@
   background: var(--border);
   color: var(--text-primary);
 }
+.closeBtn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
 
 .body {
-  padding: 20px 24px;
+  padding: var(--sp-5);
   overflow-y: auto;
   flex: 1;
 }
 
 .footer {
-  padding: 14px 24px 20px;
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
   border-top: 1px solid var(--border);
   display: flex;
   gap: 10px;
