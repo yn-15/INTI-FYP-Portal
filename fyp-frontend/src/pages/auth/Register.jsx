@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { Eye, EyeOff, XCircle, UserPlus, ShieldCheck, LogIn } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { validateRegisterForm, getPasswordStrength } from '../../utils/validators'
-import { departments } from '../../data/mockDB'
 import styles from './Auth.module.css'
 
 const ROLES = [
@@ -161,7 +160,7 @@ export default function Register() {
             <div className={styles.heroHintTitle}>Email Format by Role</div>
             {ROLES.map(r => (
               <div key={r.value} className={styles.heroHintRow}>
-                <div className={styles.heroHintDot} style={{ background: r.value==='student'?'#2563EB':r.value==='lecturer'?'#16A34A':'#7C3AED' }}/>
+                <div className={styles.heroHintDot} style={{ background: r.value==='student'?'var(--info)':r.value==='lecturer'?'var(--success)':'var(--red)' }}/>
                 <span><strong>{r.label}:</strong> {r.hint}</span>
               </div>
             ))}
@@ -258,7 +257,7 @@ export default function Register() {
                     <div className={styles.strengthBar}>
                       {[1,2,3,4].map(i => (
                         <div key={i} className={styles.strengthSeg}
-                          style={{ background: i <= pwStrength.score ? pwStrength.color : '#EEE' }}/>
+                          style={{ background: i <= pwStrength.score ? pwStrength.color : 'var(--border)' }}/>
                       ))}
                     </div>
                     <p className={styles.strengthLabel} style={{ color: pwStrength.color }}>{pwStrength.label} password</p>
