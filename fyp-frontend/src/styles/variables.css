@@ -1,58 +1,79 @@
 :root {
-  /* ── Brand Colours ── */
+  /* ── Brand ── */
   --red:           #CC0000;
-  --red-dark:      #A30000;
-  --red-faint:     #FFF0F0;
-  --red-border:    #F5C6C6;
+  --red-dark:      #970000;
+  --red-mark:      #EC1B23;
+  --red-faint:     #FBEAEA;
+  --red-border:    #F0C7C7;
 
-  /* ── Neutrals ── */
-  --black:         #1A1A1A;
-  --sidebar-bg:    #1A1A1A;
-  --sidebar-hover: #2A2A2A;
-  --sidebar-active:#2D0000;
+  /* ── Neutrals (warmed, not clinical gray) ── */
+  --black:         #18120F;
+  --sidebar-bg:    #18120F;
+  --sidebar-hover: rgba(255,255,255,0.05);
+  --sidebar-active:#CC0000;
 
   /* ── Backgrounds ── */
-  --bg:            #F7F7F7;
+  --bg:            #FAF8F6;
   --card:          #FFFFFF;
-  --card-hover:    #FAFAFA;
+  --card-hover:    #F5F3F1;
 
   /* ── Borders ── */
-  --border:        #E5E5E5;
-  --border-dark:   #D0D0D0;
+  --border:        #ECE7E3;
+  --border-dark:   #DCD5CF;
 
   /* ── Text ── */
-  --text-primary:  #1A1A1A;
-  --text-secondary:#555555;
-  --text-muted:    #999999;
+  --text-primary:  #18120F;
+  --text-secondary:#6B6058;
+  --text-muted:    #A39A92;
   --text-white:    #FFFFFF;
 
   /* ── Semantic ── */
-  --success:       #16A34A;
-  --success-faint: #F0FDF4;
-  --success-border:#86EFAC;
-  --warning:       #D97706;
-  --warning-faint: #FFFBEB;
-  --warning-border:#FDE68A;
-  --error:         #DC2626;
-  --error-faint:   #FEF2F2;
-  --error-border:  #FECACA;
-  --info:          #2563EB;
-  --info-faint:    #EFF6FF;
-  --info-border:   #BFDBFE;
+  --success:       #15803D;
+  --success-faint: #EFF8F1;
+  --success-border:#BFE2CB;
+  --warning:       #B45309;
+  --warning-faint: #FDF6EC;
+  --warning-border:#F2DCB8;
+  --error:         #B91C1C;
+  --error-faint:   #FBEAEA;
+  --error-border:  #F0C7C7;
+  --info:          #1D4E89;
+  --info-faint:    #EEF3F9;
+  --info-border:   #C7D7E8;
 
-  /* ── Spacing ── */
-  --sidebar-width: 240px;
-  --topbar-height: 60px;
+  /* Corrective status — distinct from brand red and error red.
+     Used for "Returned for Review" and similar needs-action-but-not-broken states. */
+  --corrective:        #BE3455;
+  --corrective-faint:  #FBEEF1;
+  --corrective-border: #F0CCD6;
+
+  /* ── Type scale ── */
+  --fs-display:    28px;
+  --fs-h1:         22px;
+  --fs-h2:         17px;
+  --fs-h3:         14px;
+  --fs-body:       14px;
+  --fs-small:      12.5px;
+  --fs-micro:      11px;
+
+  /* ── Spacing scale ── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+
+  /* ── Layout ── */
+  --sidebar-width: 248px;
+  --topbar-height: 64px;
   --radius-sm:     6px;
   --radius-md:     10px;
   --radius-lg:     14px;
   --radius-xl:     20px;
 
-  /* ── Shadow ── */
-  --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:     0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg:     0 8px 24px rgba(0,0,0,0.12);
+  /* ── Shadow (sparingly: hover/focus states, not static decoration) ── */
+  --shadow-sm:     0 1px 2px rgba(24,18,15,0.05), 0 1px 1px rgba(24,18,15,0.03);
+  --shadow-md:     0 8px 20px rgba(24,18,15,0.08);
+  --shadow-lg:     0 16px 36px rgba(24,18,15,0.14);
 
   /* ── Transition ── */
   --transition:    all 0.15s ease;
 }
+
