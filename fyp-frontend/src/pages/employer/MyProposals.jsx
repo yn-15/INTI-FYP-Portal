@@ -77,7 +77,6 @@ export default function MyProposals() {
     finally { setSubmitting(false) }
   }
 
-  const getField = (p, ...keys) => { for (const k of keys) if (p[k]) return p[k]; return null }
   const set = key => val => setEditForm(p => ({ ...p, [key]: val }))
 
   return (
@@ -89,12 +88,12 @@ export default function MyProposals() {
         <Button onClick={() => navigate('/employer/submit')}>+ Submit New Proposal</Button>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:18 }}>
+      <div className={styles.statsGrid4}>
         {[
-          ['Total',    proposals.length,                                              '#1A1A1A'],
-          ['Pending',  proposals.filter(p=>p.status==='pending').length,              '#D97706'],
-          ['Approved', proposals.filter(p=>p.status==='approved').length,             '#16A34A'],
-          ['Returned', proposals.filter(p=>p.status==='returned_for_review').length,  '#D97706'],
+          ['Total',    proposals.length,                                              'var(--text-primary)'],
+          ['Pending',  proposals.filter(p=>p.status==='pending').length,              'var(--warning)'],
+          ['Approved', proposals.filter(p=>p.status==='approved').length,             'var(--success)'],
+          ['Returned', proposals.filter(p=>p.status==='returned_for_review').length,  'var(--corrective)'],
         ].map(([l,c,col]) => (
           <div key={l} style={{ background:'var(--card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', padding:'14px 18px' }}>
             <div style={{ fontSize:24, fontWeight:700, color:col, fontFamily:'Space Grotesk' }}>{loading?'—':c}</div>
@@ -122,14 +121,14 @@ export default function MyProposals() {
         const team      = p.team
         const isReturned = p.status === 'returned_for_review'
         return (
-          <div key={p.id} className={`${styles.proposalStatusCard} ${styles[isReturned ? 'pending' : p.status]}`}>
+          <div key={p.id} className={`${styles.proposalStatusCard} ${styles[p.status]}`}>
             <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16 }}>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6, flexWrap:'wrap' }}>
                   <Badge status={p.status}/>
                   <span style={{ fontSize:12, color:'var(--text-muted)', fontFamily:'monospace' }}>#{p.id}</span>
                   {p.department && <span style={{ fontSize:12, padding:'2px 8px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:10, color:'var(--text-muted)' }}>{p.department.name}</span>}
-                  {team?.confirmed && <span style={{ fontSize:12, color:'#16A34A', fontWeight:600 }}>● Team Assigned</span>}
+                  {team?.confirmed && <span style={{ fontSize:12, color:'var(--success)', fontWeight:600 }}>● Team Assigned</span>}
                 </div>
                 <div className={styles.proposalCardTitle}>{p.title}</div>
                 <div className={styles.proposalCardMeta}>
@@ -138,16 +137,16 @@ export default function MyProposals() {
                 </div>
 
                 {isReturned && (
-                  <div style={{ padding:'10px 14px', borderRadius:'var(--radius-sm)', border:'1px solid #FDE68A', background:'#FFFBEB', color:'#92400E', fontSize:13, lineHeight:1.55, marginBottom:10 }}>
+                  <div style={{ padding:'10px 14px', borderRadius:'var(--radius-sm)', border:'1px solid var(--corrective-border)', background:'var(--corrective-faint)', color:'var(--corrective)', fontSize:13, lineHeight:1.55, marginBottom:10 }}>
                     <strong>Action Required:</strong> This proposal has been returned for review. Please read the feedback below and edit your proposal before resubmitting.
                   </div>
                 )}
 
                 {p.reviewFeedback && (
                   <div style={{ padding:'10px 14px', borderRadius:'var(--radius-sm)', border:'1px solid', marginBottom:10,
-                    background: p.status==='approved' ? '#F0FDF4' : '#FFFBEB',
-                    borderColor: p.status==='approved' ? '#86EFAC' : '#FDE68A',
-                    color: p.status==='approved' ? '#16A34A' : '#92400E',
+                    background: p.status==='approved' ? 'var(--success-faint)' : 'var(--corrective-faint)',
+                    borderColor: p.status==='approved' ? 'var(--success-border)' : 'var(--corrective-border)',
+                    color: p.status==='approved' ? 'var(--success)' : 'var(--corrective)',
                     fontSize:13.5, lineHeight:1.55 }}>
                     <strong>Supervisor Feedback:</strong> {p.reviewFeedback}
                   </div>
@@ -200,7 +199,7 @@ export default function MyProposals() {
             {selected.status === 'returned_for_review' && <Button onClick={() => openEdit(selected)}><Edit2 size={14}/> Edit & Resubmit</Button>}
             {selected.chatThread && <Button onClick={() => { setModal(null); navigate('/employer/chat') }}><MessageSquare size={14}/> Open Chat</Button>}
           </>}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+          <div className={styles.detailGrid}>
             {[['Title',selected.title],['Status',null],['Department',selected.department?.name||'—'],['Submitted',formatDate(selected.submittedAt)]].map(([l,v]) => (
               <div key={l} style={{ padding:'10px 14px', background:'var(--bg)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)' }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:3 }}>{l}</div>
@@ -217,7 +216,11 @@ export default function MyProposals() {
           {selected.reviewFeedback && (
             <div>
               <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:6 }}>Supervisor Feedback</div>
-              <div style={{ fontSize:13.5, padding:'12px 14px', background:'#FFFBEB', borderRadius:'var(--radius-sm)', border:'1px solid #FDE68A', lineHeight:1.6 }}>{selected.reviewFeedback}</div>
+              <div style={{ fontSize:13.5, padding:'12px 14px',
+                background: selected.status==='approved' ? 'var(--success-faint)' : 'var(--corrective-faint)',
+                borderRadius:'var(--radius-sm)',
+                border: `1px solid ${selected.status==='approved' ? 'var(--success-border)' : 'var(--corrective-border)'}`,
+                lineHeight:1.6 }}>{selected.reviewFeedback}</div>
             </div>
           )}
         </Modal>
@@ -237,11 +240,11 @@ export default function MyProposals() {
             You are editing Proposal #{selected.id}. The proposal ID will remain the same after resubmission. It will return to the review queue once submitted.
           </Alert>
           {selected.reviewFeedback && (
-            <div style={{ padding:'10px 14px', borderRadius:'var(--radius-sm)', border:'1px solid #FDE68A', background:'#FFFBEB', color:'#92400E', fontSize:13, lineHeight:1.6, marginBottom:16 }}>
+            <div style={{ padding:'10px 14px', borderRadius:'var(--radius-sm)', border:'1px solid var(--corrective-border)', background:'var(--corrective-faint)', color:'var(--corrective)', fontSize:13, lineHeight:1.6, marginBottom:16 }}>
               <strong>Feedback to address:</strong> {selected.reviewFeedback}
             </div>
           )}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+          <div className={styles.formGrid2}>
             <Input label="Project Title" name="title" value={editForm.title} onChange={set('title')} required/>
             <Input label="Company Name" name="co" value={editForm.companyName} onChange={set('companyName')} required/>
             <Input label="Company Website" name="web" value={editForm.companyWebsite} onChange={set('companyWebsite')}/>
