@@ -22,14 +22,14 @@ export default function LecturerChat() {
         if (withThread.length > 0) setActive(withThread[0])
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- intentional: fetch proposals once on mount
 
   useEffect(() => {
     if (!active) return
     api.getChatThread(active.id)
       .then(setThread)
       .catch(() => setThread(null))
-  }, [active?.id])
+  }, [active?.id]) // eslint-disable-line react-hooks/exhaustive-deps -- depend on id, not object reference, to avoid re-fetching on re-render
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior:'smooth' })
@@ -62,7 +62,7 @@ export default function LecturerChat() {
         <div className={styles.card} style={{ textAlign:'center', padding:60 }}>
           <MessageSquare size={36} style={{ color:'var(--text-muted)', margin:'0 auto 12px', display:'block' }}/>
           <h3 style={{ fontFamily:'Space Grotesk', marginBottom:8 }}>No chat threads yet</h3>
-          <p style={{ color:'var(--text-muted)', fontSize:13.5 }}>Chat threads open automatically when you approve or reject a proposal.</p>
+          <p style={{ color:'var(--text-muted)', fontSize:13.5 }}>Chat threads open automatically when you approve or return a proposal for review.</p>
         </div>
       ) : (
         <div className={styles.chatLayout}>
@@ -72,7 +72,7 @@ export default function LecturerChat() {
               {proposals.map(p => (
                 <div key={p.id} className={`${styles.chatThreadItem} ${active?.id===p.id?styles.activeThread:''}`} onClick={() => setActive(p)}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                    <div style={{ width:28,height:28,borderRadius:'50%',background:'#7C3AED',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,flexShrink:0 }}>
+                    <div style={{ width:28,height:28,borderRadius:'50%',background:'var(--black)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,flexShrink:0 }}>
                       {p.submittedBy?.firstName?.[0]}{p.submittedBy?.lastName?.[0]}
                     </div>
                     <div className={styles.chatThreadTitle}>{p.title}</div>
@@ -91,7 +91,7 @@ export default function LecturerChat() {
                     <div className={styles.chatHeaderTitle}>{active.title}</div>
                     <div className={styles.chatHeaderSub}>
                       {active.companyName} ·{' '}
-                      <span style={{ color:active.status==='approved'?'#16A34A':active.status==='rejected'?'#DC2626':'#D97706', fontWeight:600, textTransform:'capitalize' }}>{active.status}</span>
+                      <span style={{ color:active.status==='approved'?'var(--success)':active.status==='returned_for_review'?'var(--corrective)':'var(--info)', fontWeight:600, textTransform:'capitalize' }}>{active.status === 'returned_for_review' ? 'Returned for Review' : active.status}</span>
                     </div>
                   </div>
                 </div>
@@ -110,7 +110,7 @@ export default function LecturerChat() {
                       const sender = m.sender
                       return (
                         <div key={m.id} className={`${styles.msgRow} ${isMe?styles.mine:''}`}>
-                          <div className={styles.msgAvatar} style={{ background:isMe?'#CC0000':'#7C3AED', marginTop:2 }}>
+                          <div className={styles.msgAvatar} style={{ background:isMe?'var(--red)':'var(--black)', marginTop:2 }}>
                             {sender ? `${(sender.firstName||sender.first_name||'')[0]}${(sender.lastName||sender.last_name||'')[0]}` : '?'}
                           </div>
                           <div>
