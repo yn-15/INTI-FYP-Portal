@@ -22,12 +22,12 @@ export default function EmployerChat() {
         if (withThread.length > 0) setActive(withThread[0])
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- intentional: fetch proposals once on mount
 
   useEffect(() => {
     if (!active) return
     api.getChatThread(active.id).then(setThread).catch(()=>setThread(null))
-  }, [active?.id])
+  }, [active?.id]) // eslint-disable-line react-hooks/exhaustive-deps -- depend on id, not object reference, to avoid re-fetching on re-render
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }) }, [thread?.messages?.length])
 
@@ -70,14 +70,14 @@ export default function EmployerChat() {
                 return (
                   <div key={p.id} className={`${styles.chatThreadItem} ${active?.id===p.id?styles.activeThread:''}`} onClick={()=>setActive(p)}>
                     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                      <div style={{ width:28,height:28,borderRadius:'50%',background:'#134770',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,flexShrink:0 }}>
+                      <div style={{ width:28,height:28,borderRadius:'50%',background:'var(--black)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,flexShrink:0 }}>
                         {reviewer?`${reviewer.firstName[0]}${reviewer.lastName[0]}`:'DR'}
                       </div>
                       <div className={styles.chatThreadTitle}>{p.title}</div>
                     </div>
                     <div className={styles.chatThreadSub}>
                       {reviewer?`Dr. ${reviewer.firstName} ${reviewer.lastName}`:'INTI Supervisor'} ·{' '}
-                      <span style={{ color:p.status==='approved'?'#16A34A':p.status==='rejected'?'#DC2626':'#D97706', fontWeight:600, textTransform:'capitalize' }}>{p.status}</span>
+                      <span style={{ color:p.status==='approved'?'var(--success)':p.status==='returned_for_review'?'var(--corrective)':'var(--info)', fontWeight:600, textTransform:'capitalize' }}>{p.status === 'returned_for_review' ? 'Returned for Review' : p.status}</span>
                     </div>
                   </div>
                 )
@@ -91,7 +91,7 @@ export default function EmployerChat() {
                 <div className={styles.chatHeaderTitle}>{active.title}</div>
                 <div className={styles.chatHeaderSub}>
                   {active.reviewedBy?`Dr. ${active.reviewedBy.firstName} ${active.reviewedBy.lastName}`:'INTI Supervisor'} ·{' '}
-                  <span style={{ color:active.status==='approved'?'#16A34A':active.status==='rejected'?'#DC2626':'#D97706', fontWeight:600, textTransform:'capitalize' }}>{active.status}</span>
+                  <span style={{ color:active.status==='approved'?'var(--success)':active.status==='returned_for_review'?'var(--corrective)':'var(--info)', fontWeight:600, textTransform:'capitalize' }}>{active.status === 'returned_for_review' ? 'Returned for Review' : active.status}</span>
                 </div>
               </div>
 
@@ -108,7 +108,7 @@ export default function EmployerChat() {
                       const sender = m.sender
                       return (
                         <div key={m.id} className={`${styles.msgRow} ${isMe?styles.mine:''}`}>
-                          <div className={styles.msgAvatar} style={{ background:isMe?'#7C3AED':'#134770', marginTop:2 }}>
+                          <div className={styles.msgAvatar} style={{ background:isMe?'var(--red)':'var(--black)', marginTop:2 }}>
                             {sender?`${(sender.firstName||'')[0]}${(sender.lastName||'')[0]}`:'?'}
                           </div>
                           <div>
@@ -133,7 +133,7 @@ export default function EmployerChat() {
                   <textarea className={styles.chatInput} value={input} onChange={e=>setInput(e.target.value)}
                     onKeyDown={handleKeyDown} placeholder="Type your reply… (Enter to send)" rows={1}/>
                   <button onClick={handleSend} disabled={!input.trim()}
-                    style={{ width:40,height:40,borderRadius:'50%',background:input.trim()?'#7C3AED':'var(--border)',border:'none',cursor:input.trim()?'pointer':'not-allowed',display:'flex',alignItems:'center',justifyContent:'center',transition:'var(--transition)',flexShrink:0 }}>
+                    style={{ width:40,height:40,borderRadius:'50%',background:input.trim()?'var(--red)':'var(--border)',border:'none',cursor:input.trim()?'pointer':'not-allowed',display:'flex',alignItems:'center',justifyContent:'center',transition:'var(--transition)',flexShrink:0 }}>
                     <Send size={16} color="#fff"/>
                   </button>
                 </div>
