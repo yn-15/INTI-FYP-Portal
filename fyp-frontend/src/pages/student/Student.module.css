@@ -9,6 +9,14 @@
 .grid2     { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .grid3     { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 
+@media (max-width: 900px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .statsGrid { grid-template-columns: 1fr; }
+}
+
 /* ── Card ── */
 .card { background: var(--card); border-radius: var(--radius-md); border: 1px solid var(--border); padding: 20px 22px; }
 .cardHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -47,20 +55,20 @@
   cursor: pointer;
 }
 .proposalCard:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-.proposalCard.taken { border-left-color: #D1D5DB; opacity: 0.65; cursor: default; }
+.proposalCard.taken { border-left-color: var(--border-dark); opacity: 0.65; cursor: default; }
 .proposalCard.taken:hover { box-shadow: none; transform: none; }
-.proposalCard.mine  { border-left-color: #16A34A; }
+.proposalCard.mine  { border-left-color: var(--success); }
 
 .proposalCardHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 8px; }
 .proposalCardTitle  { font-size: 15.5px; font-weight: 700; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; margin-bottom: 3px; }
 .proposalCardCompany { font-size: 13px; color: var(--text-muted); }
 .proposalCardDesc   { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin: 10px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .proposalCardTags   { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.proposalTag        { padding: 3px 10px; background: #F3F4F6; color: #374151; border-radius: 10px; font-size: 11.5px; font-weight: 500; }
+.proposalTag        { padding: 3px 10px; background: var(--bg); color: #374151; border-radius: 10px; font-size: 11.5px; font-weight: 500; }
 
 /* ── Selected proposal banner ── */
 .selectedBanner {
-  background: linear-gradient(135deg, #1A1A1A 0%, #2D0000 100%);
+  background: linear-gradient(135deg, var(--black) 0%, var(--red-dark) 100%);
   border-radius: var(--radius-md);
   padding: 22px 26px;
   margin-bottom: 20px;
@@ -93,6 +101,17 @@
 
 /* ── Detail rows ── */
 .detailGrid  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+@media (max-width: 560px) {
+  .detailGrid { grid-template-columns: 1fr; }
+}
+
+.detailGrid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+@media (max-width: 700px) {
+  .detailGrid3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .detailGrid3 { grid-template-columns: 1fr; }
+}
 .detailItem  { padding: 10px 14px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); }
 .detailItemLabel { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; }
 .detailItemValue { font-size: 13.5px; color: var(--text-primary); font-weight: 500; }
@@ -113,9 +132,9 @@
 .memberYou   { font-size: 11px; font-weight: 600; color: var(--red); background: var(--red-faint); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--red-border); margin-left: 6px; }
 
 /* ── Notifications ── */
-.notifCard { background: var(--card); border-radius: var(--radius-md); border: 1px solid var(--border); border-left: 4px solid var(--red); padding: 16px 20px; margin-bottom: 12px; transition: var(--transition); }
-.notifCard.unread { border-left-color: var(--red); background: #FFFAFA; }
-.notifCard.read   { border-left-color: #D1D5DB; opacity: 0.75; }
+.notifCard { background: var(--card); border-radius: var(--radius-md); border: 1px solid var(--border); padding: var(--sp-4) var(--sp-5); margin-bottom: var(--sp-3); transition: var(--transition); }
+.notifCard.unread { border-left: 3px solid var(--red); }
+.notifCard.read   { opacity: 0.75; }
 .notifTitle { font-size: 15px; font-weight: 600; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
 .unreadDot  { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
 .notifMeta  { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -132,3 +151,6 @@
 .settingsName    { font-size: 17px; font-weight: 700; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; }
 .settingsEmail   { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
 .formGrid2       { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+@media (max-width: 700px) {
+  .formGrid2 { grid-template-columns: 1fr; }
+}
