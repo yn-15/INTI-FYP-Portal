@@ -57,7 +57,7 @@ export default function UserManagement() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps -- load() runs once on mount by design
 
   const normalise = u => ({
     ...u,
@@ -262,7 +262,7 @@ export default function UserManagement() {
                     {u.status === 'deactivated' && (
                       <Button size="sm" variant="subtle" onClick={() => handleReactivate(u)}>Reactivate</Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => { setSelected(u); setModal('edit') }}>
+                    <Button size="sm" variant="ghost" onClick={() => { setSelected(u); setModal('edit') }} aria-label={`Edit ${u.first_name} ${u.last_name}`}>
                       <Edit2 size={13}/>
                     </Button>
                   </div>
@@ -270,7 +270,11 @@ export default function UserManagement() {
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>No users found.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>
+                {users.length === 0
+                  ? 'No users found.'
+                  : 'No users match your search or filters.'}
+              </td></tr>
             )}
           </tbody>
         </table>
@@ -354,11 +358,11 @@ export default function UserManagement() {
           ) : (
             /* Upload results */
             <div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:20 }}>
+              <div className={styles.statsGrid3}>
                 {[
-                  ['Created',  uploadResult.results.created.length,  '#16A34A'],
-                  ['Skipped',  uploadResult.results.skipped.length,  '#D97706'],
-                  ['Errors',   uploadResult.results.errors.length,   '#DC2626'],
+                  ['Created',  uploadResult.results.created.length,  'var(--success)'],
+                  ['Skipped',  uploadResult.results.skipped.length,  'var(--warning)'],
+                  ['Errors',   uploadResult.results.errors.length,   'var(--error)'],
                 ].map(([l,c,col]) => (
                   <div key={l} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', padding:'14px 18px', textAlign:'center' }}>
                     <div style={{ fontSize:28, fontWeight:700, color:col, fontFamily:'Space Grotesk' }}>{c}</div>
@@ -371,7 +375,7 @@ export default function UserManagement() {
                 <div style={{ marginBottom:16 }}>
                   <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:8 }}>Errors</div>
                   {uploadResult.results.errors.map((e, i) => (
-                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:'var(--radius-sm)', marginBottom:4, color:'#DC2626' }}>
+                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'var(--error-faint)', border:'1px solid var(--error-border)', borderRadius:'var(--radius-sm)', marginBottom:4, color:'var(--error)' }}>
                       Row {e.row} — {e.email}: {e.reason}
                     </div>
                   ))}
@@ -382,7 +386,7 @@ export default function UserManagement() {
                 <div style={{ marginBottom:16 }}>
                   <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:8 }}>Skipped (already exists)</div>
                   {uploadResult.results.skipped.map((s, i) => (
-                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius:'var(--radius-sm)', marginBottom:4, color:'#92400E' }}>
+                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'var(--warning-faint)', border:'1px solid var(--warning-border)', borderRadius:'var(--radius-sm)', marginBottom:4, color:'var(--warning)' }}>
                       Row {s.row} — {s.email}: {s.reason}
                     </div>
                   ))}
@@ -393,7 +397,7 @@ export default function UserManagement() {
                 <div>
                   <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:8 }}>Successfully Created</div>
                   {uploadResult.results.created.map((c, i) => (
-                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'#F0FDF4', border:'1px solid #86EFAC', borderRadius:'var(--radius-sm)', marginBottom:4, color:'#166534', display:'flex', justifyContent:'space-between' }}>
+                    <div key={i} style={{ fontSize:12.5, padding:'6px 10px', background:'var(--success-faint)', border:'1px solid var(--success-border)', borderRadius:'var(--radius-sm)', marginBottom:4, color:'var(--success)', display:'flex', justifyContent:'space-between' }}>
                       <span>{c.name} — {c.email}</span>
                       <span style={{ fontFamily:'monospace', opacity:0.7 }}>pw: {c.defaultPassword}</span>
                     </div>
@@ -446,7 +450,7 @@ export default function UserManagement() {
               <UserPlus size={14}/> Create User
             </Button>
           </>}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 16px' }}>
+          <div className={styles.formGrid2}>
             <Input label="First Name" name="fn" value={newUser.first_name} onChange={set('first_name')} required/>
             <Input label="Last Name"  name="ln" value={newUser.last_name}  onChange={set('last_name')}  required/>
           </div>
@@ -483,7 +487,7 @@ export default function UserManagement() {
               } catch(e) { showAlert('error', e.message) }
             }}>Save Changes</Button>
           </>}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 16px' }}>
+          <div className={styles.formGrid2}>
             <Input label="First Name" name="fn" value={selected.first_name || ''}
               onChange={v => setSelected(p => ({ ...p, first_name: v }))} required/>
             <Input label="Last Name" name="ln" value={selected.last_name || ''}
