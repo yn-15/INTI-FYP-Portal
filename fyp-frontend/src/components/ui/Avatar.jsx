@@ -2,8 +2,8 @@ import { getInitials } from '../../utils/helpers'
 import styles from './Avatar.module.css'
 
 const COLORS = [
-  '#CC0000','#A30000','#1A1A1A','#2563EB',
-  '#16A34A','#D97706','#7C3AED','#0891B2',
+  'var(--red)', 'var(--red-dark)', 'var(--black)', 'var(--info)',
+  'var(--success)', 'var(--warning)', 'var(--corrective)', 'var(--text-secondary)',
 ]
 
 function getColor(name = '') {
