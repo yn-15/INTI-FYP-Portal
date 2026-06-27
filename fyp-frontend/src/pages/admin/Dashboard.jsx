@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, FileText, UsersRound, AlertCircle, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Users, FileText, UsersRound, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import StatCard from '../../components/ui/StatCard'
+import StatPanel from '../../components/ui/StatPanel'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import { api } from '../../utils/api'
-import { formatDate, formatDateTime } from '../../utils/helpers'
+import { formatDate } from '../../utils/helpers'
 import styles from './Admin.module.css'
 
 export default function AdminDashboard() {
@@ -52,9 +53,9 @@ export default function AdminDashboard() {
 
   // Proposal breakdown
   const byStatus = {
-    pending:  proposals.filter(p => p.status === 'pending').length,
-    approved: proposals.filter(p => p.status === 'approved').length,
-    rejected: proposals.filter(p => p.status === 'rejected').length,
+    pending:             proposals.filter(p => p.status === 'pending').length,
+    approved:            proposals.filter(p => p.status === 'approved').length,
+    returned_for_review: proposals.filter(p => p.status === 'returned_for_review').length,
   }
 
   // Proposals by department
@@ -67,9 +68,9 @@ export default function AdminDashboard() {
   // Audit log icon
   const actionIcon = (action = '') => {
     const a = action.toLowerCase()
-    if (a.includes('failed') || a.includes('error')) return <XCircle size={14} color="#DC2626"/>
-    if (a.includes('rejected') || a.includes('deactivated') || a.includes('dropped')) return <XCircle size={14} color="#D97706"/>
-    return <CheckCircle size={14} color="#16A34A"/>
+    if (a.includes('failed') || a.includes('error')) return <XCircle size={14} color="var(--error)"/>
+    if (a.includes('returned') || a.includes('deactivated') || a.includes('dropped')) return <XCircle size={14} color="var(--warning)"/>
+    return <CheckCircle size={14} color="var(--success)"/>
   }
 
   return (
@@ -81,9 +82,9 @@ export default function AdminDashboard() {
 
       {/* Pending alert banner */}
       {stats.pending > 0 && (
-        <div style={{ padding:'14px 18px', background:'#FFFBEB', borderRadius:'var(--radius-md)', border:'1px solid #FDE68A', marginBottom:20, display:'flex', alignItems:'center', gap:12 }}>
-          <AlertCircle size={18} color="#D97706"/>
-          <span style={{ fontSize:13.5, color:'#92400E', flex:1 }}>
+        <div style={{ padding:'14px 18px', background:'var(--warning-faint)', borderRadius:'var(--radius-md)', border:'1px solid var(--warning-border)', marginBottom:20, display:'flex', alignItems:'center', gap:12 }}>
+          <AlertCircle size={18} color="var(--warning)"/>
+          <span style={{ fontSize:13.5, color:'var(--warning)', flex:1 }}>
             <strong>{stats.pending} pending</strong> account registration{stats.pending!==1?'s':''} awaiting your approval
           </span>
           <Button size="sm" onClick={() => navigate('/admin/users')}>Review →</Button>
@@ -91,12 +92,12 @@ export default function AdminDashboard() {
       )}
 
       {/* Stat cards */}
-      <div className={styles.statsGrid} style={{ marginBottom:20 }}>
-        <StatCard label="Active Users"      value={loading?'—':stats.users}     accent="#CC0000" icon={Users}       sub={`${stats.pending} pending approval`}/>
-        <StatCard label="Total Proposals"   value={loading?'—':stats.proposals}  accent="#7C3AED" icon={FileText}    sub={`${byStatus.pending} pending review`}/>
-        <StatCard label="Approved Proposals" value={loading?'—':byStatus.approved} accent="#16A34A" icon={CheckCircle} sub="Available for selection"/>
-        <StatCard label="Active Teams"      value={loading?'—':stats.teams}      accent="#2563EB" icon={UsersRound}  sub={`${depts.length} departments`}/>
-      </div>
+      <StatPanel>
+        <StatCard label="Active Users"      value={loading?'—':stats.users}     tone="neutral" icon={Users}       sub={`${stats.pending} pending approval`}/>
+        <StatCard label="Total Proposals"   value={loading?'—':stats.proposals}  tone="neutral" icon={FileText}    sub={`${byStatus.pending} pending review`}/>
+        <StatCard label="Approved Proposals" value={loading?'—':byStatus.approved} tone="live"    icon={CheckCircle} sub="Available for selection"/>
+        <StatCard label="Active Teams"      value={loading?'—':stats.teams}      tone="neutral" icon={UsersRound}  sub={`${depts.length} departments`}/>
+      </StatPanel>
 
       {/* Middle row — Pending registrations + Proposals Overview */}
       <div className={styles.grid2} style={{ marginBottom:20, alignItems:'stretch' }}>
@@ -136,9 +137,9 @@ export default function AdminDashboard() {
 
           {/* Status rows */}
           {[
-            { label:'Pending Review', count:byStatus.pending,  color:'#D97706', dot:'#D97706' },
-            { label:'Approved',       count:byStatus.approved, color:'#16A34A', dot:'#16A34A' },
-            { label:'Rejected',       count:byStatus.rejected, color:'#DC2626', dot:'#DC2626' },
+            { label:'Pending Review',       count:byStatus.pending,             color:'var(--warning)', dot:'var(--warning)' },
+            { label:'Approved',             count:byStatus.approved,            color:'var(--success)', dot:'var(--success)' },
+            { label:'Returned for Review',  count:byStatus.returned_for_review, color:'var(--corrective)', dot:'var(--corrective)' },
           ].map(s => (
             <div key={s.label} style={{ display:'flex', alignItems:'center', gap:12, padding:'9px 0', borderBottom:'1px solid var(--border)' }}>
               <div style={{ width:8, height:8, borderRadius:'50%', background:s.dot, flexShrink:0 }}/>
@@ -157,7 +158,7 @@ export default function AdminDashboard() {
                 <div key={d.name} style={{ display:'flex', alignItems:'center', gap:12, marginBottom: i < byDept.length-1 ? 10 : 0 }}>
                   <span style={{ fontSize:13, color:'var(--text-secondary)', width:70, flexShrink:0 }}>{d.name}</span>
                   <div style={{ flex:1, height:7, background:'var(--border)', borderRadius:4, overflow:'hidden' }}>
-                    <div style={{ height:'100%', borderRadius:4, width:`${(d.count/maxDeptCount)*100}%`, background: i===0?'#CC0000':'#2563EB', transition:'width 0.5s ease' }}/>
+                    <div style={{ height:'100%', borderRadius:4, width:`${(d.count/maxDeptCount)*100}%`, background: i===0?'var(--red)':'var(--info)', transition:'width 0.5s ease' }}/>
                   </div>
                   <span style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', width:16, textAlign:'right', flexShrink:0 }}>{d.count}</span>
                 </div>
@@ -173,7 +174,8 @@ export default function AdminDashboard() {
           <h3 className={styles.cardTitle}>Recent System Activity</h3>
           <button className={styles.cardLink} onClick={() => navigate('/admin/audit')}>View audit log →</button>
         </div>
-        <div style={{ width:'100%' }}>
+        <div style={{ width:'100%', overflowX:'auto' }}>
+          <div style={{ minWidth:520 }}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'8px 0', borderBottom:'2px solid var(--border)', marginBottom:4 }}>
             {['User','Action','Entity','Time'].map(h => (
               <div key={h} style={{ fontSize:11.5, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px' }}>{h}</div>
@@ -212,6 +214,7 @@ export default function AdminDashboard() {
               </div>
             )
           })}
+          </div>
         </div>
       </div>
     </div>
