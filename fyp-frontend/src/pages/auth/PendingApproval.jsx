@@ -52,7 +52,7 @@ export default function PendingApproval() {
       clearInterval(intervalRef.current)
       clearInterval(countdownRef.current)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- intentional: sets up interval once on mount
 
   const handleLoginNow = () => {
     sessionStorage.removeItem('pending_email')
@@ -64,13 +64,13 @@ export default function PendingApproval() {
       <div className={styles.page}>
         <div className={styles.card}>
           <img src="/IICS-logo-new.svg" alt="INTI" className={styles.logo}/>
-          <div className={styles.iconWrap} style={{ background:'#F0FDF4', borderColor:'#86EFAC' }}>
-            <CheckCircle size={32} color="#16A34A"/>
+          <div className={styles.iconWrap} style={{ background:'var(--success-faint)', borderColor:'var(--success-border)' }}>
+            <CheckCircle size={32} color="var(--success)"/>
           </div>
-          <h1 style={{ color:'#166534' }}>Account Approved! 🎉</h1>
+          <h1 style={{ color:'var(--success)' }}>Account Approved! 🎉</h1>
           <p>Your account has been activated by the INTI FYP Administrator. You now have full access to the portal.</p>
           <p style={{ fontSize:13, color:'var(--text-muted)' }}>Check your <strong>notification bell</strong> after logging in for a welcome message.</p>
-          <button onClick={handleLoginNow} style={{ width:'100%', padding:'12px', marginTop:8, background:'#CC0000', color:'#fff', border:'none', borderRadius:'var(--radius-sm)', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'DM Sans', boxShadow:'0 2px 8px rgba(204,0,0,0.28)' }}>
+          <button onClick={handleLoginNow} style={{ width:'100%', padding:'12px', marginTop:8, background:'var(--red)', color:'#fff', border:'none', borderRadius:'var(--radius-sm)', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'DM Sans', boxShadow:'0 2px 8px rgba(204,0,0,0.28)' }}>
             Log In Now →
           </button>
         </div>
@@ -83,13 +83,13 @@ export default function PendingApproval() {
       <div className={styles.page}>
         <div className={styles.card}>
           <img src="/IICS-logo-new.svg" alt="INTI" className={styles.logo}/>
-          <div className={styles.iconWrap} style={{ background:'#FEF2F2', borderColor:'#FECACA' }}>
-            <Clock size={32} color="#DC2626"/>
+          <div className={styles.iconWrap} style={{ background:'var(--error-faint)', borderColor:'var(--error-border)' }}>
+            <Clock size={32} color="var(--error)"/>
           </div>
-          <h1 style={{ color:'#991B1B' }}>Registration Not Approved</h1>
+          <h1 style={{ color:'var(--error)' }}>Registration Not Approved</h1>
           <p>Your registration was not approved. Please contact the FYP Coordinator for more information.</p>
           <p className={styles.contact}><a href="mailto:fyp@newinti.edu.my">fyp@newinti.edu.my</a></p>
-          <button onClick={() => navigate('/login')} style={{ width:'100%', padding:'11px', background:'#1A1A1A', color:'#fff', border:'none', borderRadius:'var(--radius-sm)', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:'DM Sans' }}>
+          <button onClick={() => navigate('/login')} style={{ width:'100%', padding:'11px', background:'var(--black)', color:'#fff', border:'none', borderRadius:'var(--radius-sm)', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:'DM Sans' }}>
             Back to Login
           </button>
         </div>
@@ -101,7 +101,7 @@ export default function PendingApproval() {
     <div className={styles.page}>
       <div className={styles.card}>
         <img src="/IICS-logo-new.svg" alt="INTI" className={styles.logo}/>
-        <div className={styles.iconWrap}><Clock size={32} color="#D97706"/></div>
+        <div className={styles.iconWrap}><Clock size={32} color="var(--warning)"/></div>
         <h1>Account Pending Approval</h1>
         <p>Thank you for registering. Your account is awaiting review by the INTI FYP Administrator.</p>
 
