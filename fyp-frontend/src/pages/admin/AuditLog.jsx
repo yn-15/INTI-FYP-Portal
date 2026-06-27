@@ -43,8 +43,8 @@ export default function AuditLog() {
 
   const entityTypes = [...new Set(logs.map(l => l.entityType || l.entity_type).filter(Boolean))]
 
-  const statusColor = { success:'#16A34A', warning:'#D97706', error:'#DC2626' }
-  const statusBg    = { success:'#F0FDF4', warning:'#FFFBEB', error:'#FEF2F2' }
+  const statusColor = { success:'var(--success)', warning:'var(--warning)', error:'var(--error)' }
+  const statusBg    = { success:'var(--success-faint)', warning:'var(--warning-faint)', error:'var(--error-faint)' }
 
   return (
     <div className={styles.page}>
