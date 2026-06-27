@@ -11,7 +11,7 @@ import styles from './Student.module.css'
 
 export default function Notifications() {
   const { user }   = useAuth()
-  const { notifications, unreadCount, markRead, markAllRead, fetchNotifications } = useNotifications()
+  const { notifications, unreadCount, loading, markRead, markAllRead, fetchNotifications } = useNotifications()
   const [showForm, setShowForm] = useState(false)
   const [alert, setAlert]   = useState(null)
   const [form, setForm]     = useState({ title:'', message:'' })
@@ -63,29 +63,34 @@ export default function Notifications() {
         </div>
       )}
 
-      {notifications.length === 0 ? (
-        <div style={{ background:'var(--card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', padding:60, textAlign:'center' }}>
-          <Bell size={30} style={{ color:'var(--text-muted)', margin:'0 auto 12px', display:'block' }}/>
-          <p style={{ color:'var(--text-muted)', fontSize:13.5 }}>No notifications yet.</p>
+      {loading ? (
+        <div className={styles.card} style={{ padding: 'var(--sp-7)', textAlign: 'center' }}>
+          <p style={{ color:'var(--text-muted)', fontSize:'var(--fs-small)' }}>Loading notifications...</p>
+        </div>
+      ) : notifications.length === 0 ? (
+        <div className={styles.card} style={{ padding: 'var(--sp-7)', textAlign: 'center' }}>
+          <Bell size={28} style={{ color:'var(--text-muted)', margin:'0 auto 12px', display:'block', opacity: 0.5 }}/>
+          <p style={{ color:'var(--text-muted)', fontSize:'var(--fs-small)' }}>No notifications yet.</p>
         </div>
       ) : notifications.map(n => {
         const creator = n.createdBy
         return (
           <div key={n.id}
             onClick={() => !n.isRead && markRead(n.id)}
-            style={{ background:n.isRead?'var(--card)':'#FFFAFA', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', borderLeft:`4px solid ${n.isRead?'#D1D5DB':'var(--red)'}`, padding:'16px 20px', marginBottom:12, cursor:n.isRead?'default':'pointer', opacity:n.isRead?0.8:1, transition:'var(--transition)' }}>
-            <div style={{ fontSize:15, fontWeight:600, color:'var(--text-primary)', fontFamily:'Space Grotesk', marginBottom:4, display:'flex', alignItems:'center', gap:8 }}>
-              {!n.isRead && <span style={{ width:8, height:8, borderRadius:'50%', background:'var(--red)', flexShrink:0, display:'inline-block' }}/>}
+            className={`${styles.notifCard} ${!n.isRead ? styles.unread : ''}`}
+            style={{ cursor: n.isRead ? 'default' : 'pointer', opacity: n.isRead ? 0.75 : 1 }}>
+            <div className={styles.notifTitle} style={{ display:'flex', alignItems:'center', gap: 'var(--sp-2)' }}>
+              {!n.isRead && <span style={{ width:7, height:7, borderRadius:'50%', background:'var(--red)', flexShrink:0, display:'inline-block' }}/>}
               {n.title}
             </div>
-            <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+            <div className={styles.notifMeta}>
               <span>{creator?`${creator.firstName||creator.first_name} ${creator.lastName||creator.last_name}`:'System'}</span>
               <span>·</span>
               <span>{formatDateTime(n.createdAt||n.created_at)}</span>
-              {n.isRead && <span style={{ color:'#9CA3AF', fontSize:11.5 }}>· Read</span>}
+              {n.isRead && <span style={{ color:'var(--text-muted)' }}>· Read</span>}
             </div>
-            <div style={{ fontSize:13.5, color:'var(--text-secondary)', lineHeight:1.6 }}>{n.message}</div>
-            {!n.isRead && <div style={{ marginTop:8, fontSize:12, color:'var(--text-muted)' }}>Click to mark as read</div>}
+            <div className={styles.notifBody}>{n.message}</div>
+            {!n.isRead && <div style={{ marginTop:'var(--sp-2)', fontSize:'var(--fs-micro)', color:'var(--text-muted)' }}>Click to mark as read</div>}
           </div>
         )
       })}
