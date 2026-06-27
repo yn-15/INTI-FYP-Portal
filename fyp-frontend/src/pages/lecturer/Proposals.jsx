@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, CheckCircle, XCircle, Eye, RotateCcw } from 'lucide-react'
-import { useAuth } from '../../context/AuthContext'
+import { Search, CheckCircle, Eye, RotateCcw } from 'lucide-react'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -11,7 +10,6 @@ import { formatDate } from '../../utils/helpers'
 import styles from './Lecturer.module.css'
 
 export default function LecturerProposals() {
-  const { user } = useAuth()
   const [proposals, setProposals] = useState([])
   const [loading, setLoading]     = useState(true)
   const [filter, setFilter]       = useState('all')
@@ -70,12 +68,12 @@ export default function LecturerProposals() {
 
       <p className={styles.sectionSub}>Review and manage proposals for your department</p>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:18 }}>
+      <div className={styles.statsGrid}>
         {[
-          ['Total',    proposals.length,                                                     '#1A1A1A'],
-          ['Pending',  proposals.filter(p=>p.status==='pending').length,                     '#D97706'],
-          ['Approved', proposals.filter(p=>p.status==='approved').length,                    '#16A34A'],
-          ['Returned', proposals.filter(p=>p.status==='returned_for_review').length,         '#D97706'],
+          ['Total',    proposals.length,                                                     'var(--text-primary)'],
+          ['Pending',  proposals.filter(p=>p.status==='pending').length,                     'var(--warning)'],
+          ['Approved', proposals.filter(p=>p.status==='approved').length,                    'var(--success)'],
+          ['Returned', proposals.filter(p=>p.status==='returned_for_review').length,         'var(--corrective)'],
         ].map(([l,c,col]) => (
           <div key={l} style={{ background:'var(--card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', padding:'14px 18px' }}>
             <div style={{ fontSize:24, fontWeight:700, color:col, fontFamily:'Space Grotesk' }}>{loading?'—':c}</div>
@@ -116,7 +114,7 @@ export default function LecturerProposals() {
                 <td><Badge status={p.status}/></td>
                 <td>
                   {p.chatThread
-                    ? <span style={{ fontSize:12, color:'#16A34A', fontWeight:600 }}>● Active</span>
+                    ? <span style={{ fontSize:12, color:'var(--success)', fontWeight:600 }}>● Active</span>
                     : <span style={{ fontSize:12, color:'var(--text-muted)' }}>—</span>
                   }
                 </td>
@@ -138,7 +136,11 @@ export default function LecturerProposals() {
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={7} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>No proposals found.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>
+                {proposals.length === 0
+                  ? 'No proposals found.'
+                  : 'No proposals match your search or filters.'}
+              </td></tr>
             )}
           </tbody>
         </table>
@@ -161,7 +163,7 @@ export default function LecturerProposals() {
               </a>
             </div>
           )}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+          <div className={styles.detailGrid}>
             {[['Title',selected.title],['Company',selected.companyName],['Status',null],['Discipline',selected.discipline||'—'],['Champion',selected.projectChampion||'—'],['Technologies',selected.technologies||'—']].map(([l,v]) => (
               <div key={l} style={{ padding:'10px 14px', background:'var(--bg)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)' }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:3 }}>{l}</div>
@@ -180,7 +182,11 @@ export default function LecturerProposals() {
           {getField(selected,'reviewFeedback','review_feedback') && (
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:6 }}>Feedback Given</div>
-              <div style={{ fontSize:13.5, padding:'12px 14px', background:'#FFFBEB', borderRadius:'var(--radius-sm)', border:'1px solid #FDE68A', lineHeight:1.6 }}>
+              <div style={{ fontSize:13.5, padding:'12px 14px',
+                background: selected.status==='approved' ? 'var(--success-faint)' : 'var(--corrective-faint)',
+                borderRadius:'var(--radius-sm)',
+                border: `1px solid ${selected.status==='approved' ? 'var(--success-border)' : 'var(--corrective-border)'}`,
+                lineHeight:1.6 }}>
                 {getField(selected,'reviewFeedback','review_feedback')}
               </div>
             </div>
