@@ -69,7 +69,7 @@ export default function Settings() {
               <div style={{ marginTop:8 }}><Badge status={user.role}/></div>
             </div>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 16px' }}>
+          <div className={styles.formGrid2}>
             <Input label="First Name" name="fname" value={profile.first_name} onChange={v=>setProfile(p=>({...p,first_name:v}))} required/>
             <Input label="Last Name"  name="lname" value={profile.last_name}  onChange={v=>setProfile(p=>({...p,last_name:v}))}  required/>
           </div>
