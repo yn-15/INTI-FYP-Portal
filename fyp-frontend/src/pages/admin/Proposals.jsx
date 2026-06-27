@@ -32,7 +32,7 @@ export default function AdminProposals() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps -- load() runs once on mount by design
 
   const filtered = proposals.filter(p => {
     if (filter !== 'all' && p.status !== filter) return false
@@ -95,7 +95,11 @@ export default function AdminProposals() {
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={7} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>No proposals found.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>
+                {proposals.length === 0
+                  ? 'No proposals found.'
+                  : 'No proposals match your search or filters.'}
+              </td></tr>
             )}
           </tbody>
         </table>
@@ -114,7 +118,7 @@ export default function AdminProposals() {
               </a>
             </div>
           )}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+          <div className={styles.detailGrid}>
             {[
               ['Title',      selected.title],
               ['Company',    getField(selected,'companyName','company_name')],
