@@ -9,6 +9,7 @@ export default function Button({
   type = 'button',
   fullWidth = false,
   style = {},
+  ...rest
 }) {
   return (
     <button
@@ -22,6 +23,7 @@ export default function Button({
       onClick={onClick}
       disabled={disabled}
       style={style}
+      {...rest}
     >
       {children}
     </button>
