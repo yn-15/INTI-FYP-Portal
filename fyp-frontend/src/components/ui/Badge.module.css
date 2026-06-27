@@ -2,9 +2,10 @@
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11.5px;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: 0.2px;
   white-space: nowrap;
   border: 1px solid transparent;
 }
@@ -19,6 +20,11 @@
   color: var(--warning);
   border-color: var(--warning-border);
 }
+.corrective {
+  background: var(--corrective-faint);
+  color: var(--corrective);
+  border-color: var(--corrective-border);
+}
 .error {
   background: var(--error-faint);
   color: var(--error);
@@ -30,17 +36,17 @@
   border-color: var(--info-border);
 }
 .neutral {
-  background: #F3F4F6;
-  color: #6B7280;
-  border-color: #E5E7EB;
+  background: var(--bg);
+  color: var(--text-secondary);
+  border-color: var(--border);
 }
 .dark {
-  background: #1A1A1A;
+  background: var(--black);
   color: #fff;
-  border-color: #1A1A1A;
+  border-color: var(--black);
 }
 .purple {
-  background: #F5F3FF;
-  color: #7C3AED;
-  border-color: #DDD6FE;
+  background: #F2F0FB;
+  color: #5B4FC4;
+  border-color: #D7D2EF;
 }

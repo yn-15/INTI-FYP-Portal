@@ -4,8 +4,8 @@ const CONFIG = {
   // Proposal status
   pending:          { label: 'Pending',          cls: 'warning' },
   approved:         { label: 'Approved',          cls: 'success' },
-  rejected:             { label: 'Returned for Review', cls: 'warning' },
-  returned_for_review:  { label: 'Returned for Review', cls: 'warning' },
+  rejected:             { label: 'Returned for Review', cls: 'corrective' },
+  returned_for_review:  { label: 'Returned for Review', cls: 'corrective' },
   // User status
   active:           { label: 'Active',            cls: 'success' },
   deactivated:      { label: 'Deactivated',       cls: 'neutral' },
