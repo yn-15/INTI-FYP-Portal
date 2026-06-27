@@ -1,13 +1,13 @@
 .group {
-  margin-bottom: 18px;
+  margin-bottom: var(--sp-4);
 }
 
 .label {
   display: block;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--fs-small);
+  font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: var(--sp-2);
 }
 
 .req {
@@ -21,10 +21,10 @@
 
 .input {
   width: 100%;
-  padding: 10px 14px;
+  padding: 10px var(--sp-4);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: var(--fs-body);
   color: var(--text-primary);
   background: var(--card);
   font-family: 'DM Sans', sans-serif;
@@ -32,9 +32,13 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+.input:hover:not(:disabled):not(:focus) {
+  border-color: var(--border-dark);
+}
+
 .input:focus {
   border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.08);
+  box-shadow: 0 0 0 3px var(--red-faint);
 }
 
 .input::placeholder {
@@ -42,7 +46,7 @@
 }
 
 .input:disabled {
-  background: #F9F9F9;
+  background: var(--bg);
   color: var(--text-muted);
   cursor: not-allowed;
 }
@@ -51,7 +55,7 @@
   border-color: var(--error);
 }
 .inputError:focus {
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  box-shadow: 0 0 0 3px var(--error-faint);
 }
 
 .withEye {
@@ -66,7 +70,7 @@
 
 .select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A39A92' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 36px;
@@ -92,13 +96,13 @@
 }
 
 .error {
-  font-size: 12px;
+  font-size: var(--fs-micro);
   color: var(--error);
   margin-top: 5px;
 }
 
 .hint {
-  font-size: 12px;
+  font-size: var(--fs-micro);
   color: var(--text-muted);
   margin-top: 5px;
 }
