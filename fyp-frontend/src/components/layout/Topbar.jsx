@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom'
-import { Bell } from 'lucide-react'
+import { Bell, Menu } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationContext'
 import styles from './Topbar.module.css'
 
-export default function Topbar({ title }) {
+export default function Topbar({ title, onMenuClick = () => {} }) {
   const { user }         = useAuth()
   const { unreadCount }  = useNotifications()
   const navigate         = useNavigate()
@@ -16,13 +16,23 @@ export default function Topbar({ title }) {
 
   return (
     <header className={styles.topbar}>
-      <h1 className={styles.title}>{title}</h1>
+      <div className={styles.left}>
+        <button
+          className={styles.menuBtn}
+          onClick={onMenuClick}
+          aria-label="Open navigation menu"
+        >
+          <Menu size={22}/>
+        </button>
+        <h1 className={styles.title}>{title}</h1>
+      </div>
 
       <div className={styles.right}>
         <button
           className={styles.bellBtn}
           onClick={() => navigate(notifPath)}
           title="Notifications"
+          aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
         >
           <Bell size={19}/>
           {unread > 0 && (

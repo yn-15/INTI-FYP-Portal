@@ -5,16 +5,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 var(--sp-6);
   position: sticky;
   top: 0;
   z-index: 50;
   flex-shrink: 0;
 }
 
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.menuBtn {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.menuBtn:hover {
+  background: var(--card-hover);
+}
+@media (max-width: 1024px) {
+  .menuBtn {
+    display: flex;
+  }
+}
+
 .title {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: var(--fs-h1);
+  font-weight: 600;
   color: var(--text-primary);
   font-family: 'Space Grotesk', sans-serif;
 }
@@ -22,7 +51,7 @@
 .right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--sp-4);
 }
 
 /* Bell */
@@ -44,6 +73,11 @@
   background: var(--card-hover);
   color: var(--text-primary);
   border-color: var(--border-dark);
+}
+.bellBtn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+  border-radius: 50%;
 }
 
 .badge {
@@ -80,7 +114,7 @@
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-family: 'Space Grotesk', sans-serif;
   text-transform: uppercase;
   flex-shrink: 0;
@@ -91,6 +125,12 @@
   flex-direction: column;
 }
 
+@media (max-width: 480px) {
+  .userMeta {
+    display: none;
+  }
+}
+
 .name {
   font-size: 13px;
   font-weight: 600;
@@ -99,7 +139,7 @@
 }
 
 .role {
-  font-size: 11px;
+  font-size: var(--fs-micro);
   color: var(--text-muted);
   text-transform: capitalize;
 }
