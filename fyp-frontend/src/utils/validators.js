@@ -19,14 +19,14 @@ export function isValidEmail(email) {
 
 // ── Password strength ─────────────────────────────────────────────────────────
 export function getPasswordStrength(pw) {
-  if (!pw) return { score: 0, label: '', color: '#E5E5E5' }
+  if (!pw) return { score: 0, label: '', color: 'var(--border-dark)' }
   let score = 0
   if (pw.length >= 8)           score++
   if (/[A-Z]/.test(pw))         score++
   if (/[0-9]/.test(pw))         score++
   if (/[^A-Za-z0-9]/.test(pw))  score++
   const labels = ['', 'Weak', 'Fair', 'Good', 'Strong']
-  const colors = ['#E5E5E5', '#DC2626', '#D97706', '#2563EB', '#16A34A']
+  const colors = ['var(--border-dark)', 'var(--error)', 'var(--warning)', 'var(--warning)', 'var(--success)']
   return { score, label: labels[score], color: colors[score] }
 }
 
