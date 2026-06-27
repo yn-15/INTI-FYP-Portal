@@ -35,7 +35,7 @@ export default function LecturerTeams() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps -- load() runs once on mount by design
 
   const handleEdit = async () => {
     if (!editName.trim()) return
@@ -124,7 +124,7 @@ export default function LecturerTeams() {
                 {team.proposal ? (
                   <div className={styles.teamProject}>📁 {team.proposal.title} · {team.proposal.companyName}</div>
                 ) : (
-                  <div style={{ fontSize:13, color:'#D97706', marginBottom:4 }}>
+                  <div style={{ fontSize:'var(--fs-small)', color:'var(--warning)', marginBottom:4 }}>
                     ⏳ Waiting for team leader to select a project
                   </div>
                 )}
@@ -151,7 +151,7 @@ export default function LecturerTeams() {
                   </Button>
                 )}
                 {!team.confirmed && (
-                  <Button size="sm" variant="danger" onClick={() => { setSelected(team); setModal('delete') }}>
+                  <Button size="sm" variant="danger" onClick={() => { setSelected(team); setModal('delete') }} aria-label={`Delete team ${team.name}`}>
                     <Trash2 size={13}/>
                   </Button>
                 )}
@@ -171,13 +171,13 @@ export default function LecturerTeams() {
                     const fn = s.firstName||s.first_name||''
                     const ln = s.lastName||s.last_name||''
                     return (
-                      <div key={s.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 12px', background:'var(--bg)', borderRadius:20, border:`1px solid ${m.isLeader?'#D97706':'var(--border)'}`, background: m.isLeader?'#FFFBEB':'var(--bg)' }}>
-                        {m.isLeader && <Crown size={12} color="#D97706"/>}
-                        <div style={{ width:22, height:22, borderRadius:'50%', background: m.isLeader?'#D97706':'var(--red)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:8, fontWeight:700 }}>
+                      <div key={s.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 12px', borderRadius:20, border:`1px solid ${m.isLeader?'var(--warning)':'var(--border)'}`, background: m.isLeader?'var(--warning-faint)':'var(--bg)' }}>
+                        {m.isLeader && <Crown size={12} color="var(--warning)"/>}
+                        <div style={{ width:22, height:22, borderRadius:'50%', background: m.isLeader?'var(--warning)':'var(--red)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:8, fontWeight:700 }}>
                           {fn[0]}{ln[0]}
                         </div>
                         <span style={{ fontSize:13, fontWeight:500 }}>{fn} {ln}</span>
-                        {m.isLeader && <span style={{ fontSize:11, color:'#D97706', fontWeight:700 }}>Leader</span>}
+                        {m.isLeader && <span style={{ fontSize:11, color:'var(--warning)', fontWeight:700 }}>Leader</span>}
                       </div>
                     )
                   })}
@@ -186,13 +186,13 @@ export default function LecturerTeams() {
             </div>
 
             {team.confirmed && (
-              <div style={{ marginTop:12, padding:'10px 14px', background:'#F0FDF4', borderRadius:'var(--radius-sm)', border:'1px solid #86EFAC', fontSize:13, color:'#16A34A' }}>
+              <div style={{ marginTop:12, padding:'10px 14px', background:'var(--success-faint)', borderRadius:'var(--radius-sm)', border:'1px solid var(--success-border)', fontSize:13, color:'var(--success)' }}>
                 ✓ Team confirmed — employer can now view this team.
               </div>
             )}
 
             {!team.confirmed && !team.proposal && members.length > 0 && (
-              <div style={{ marginTop:12, padding:'10px 14px', background:'#FFFBEB', borderRadius:'var(--radius-sm)', border:'1px solid #FDE68A', fontSize:13, color:'#92400E' }}>
+              <div style={{ marginTop:12, padding:'10px 14px', background:'var(--warning-faint)', borderRadius:'var(--radius-sm)', border:'1px solid var(--warning-border)', fontSize:13, color:'var(--warning)' }}>
                 ℹ The team leader ({leaderStudent ? `${leaderStudent.firstName||leaderStudent.first_name} ${leaderStudent.lastName||leaderStudent.last_name}` : '—'}) needs to log in and select a project before you can confirm this team.
               </div>
             )}
@@ -280,13 +280,13 @@ export default function LecturerTeams() {
 
                   {/* Leader radio — only shown if student is selected */}
                   {checked && (
-                    <label style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', padding:'4px 10px', borderRadius:20, background:isLeader?'#FFFBEB':'var(--bg)', border:`1px solid ${isLeader?'#D97706':'var(--border)'}`, flexShrink:0 }}>
+                    <label style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', padding:'4px 10px', borderRadius:20, background:isLeader?'var(--warning-faint)':'var(--bg)', border:`1px solid ${isLeader?'var(--warning)':'var(--border)'}`, flexShrink:0 }}>
                       <input type="radio" name="leader" value={String(s.id)}
                         checked={isLeader}
                         onChange={() => setLeaderId(String(s.id))}
-                        style={{ accentColor:'#D97706' }}/>
-                      <Crown size={12} color={isLeader?'#D97706':'var(--text-muted)'}/>
-                      <span style={{ fontSize:12, fontWeight:600, color:isLeader?'#D97706':'var(--text-muted)' }}>Leader</span>
+                        style={{ accentColor:'var(--warning)' }}/>
+                      <Crown size={12} color={isLeader?'var(--warning)':'var(--text-muted)'}/>
+                      <span style={{ fontSize:12, fontWeight:600, color:isLeader?'var(--warning)':'var(--text-muted)' }}>Leader</span>
                     </label>
                   )}
                 </div>
