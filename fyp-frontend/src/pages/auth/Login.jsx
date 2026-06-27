@@ -181,9 +181,9 @@ export default function Login() {
             <div className={styles.accountTypes}>
               <div className={styles.accountTypesTitle}>Account Types</div>
               {[
-                { label:'Students',          hint:'J[ID]@student.newinti.edu.my', color:'#2563EB' },
-                { label:'Lecturers',         hint:'name@newinti.edu.my',          color:'#16A34A' },
-                { label:'Industry Partners', hint:'company email address',        color:'#7C3AED' },
+                { label:'Students',          hint:'J[ID]@student.newinti.edu.my', color:'var(--info)' },
+                { label:'Lecturers',         hint:'name@newinti.edu.my',          color:'var(--success)' },
+                { label:'Industry Partners', hint:'company email address',        color:'var(--red)' },
               ].map(a => (
                 <div key={a.label} className={styles.accountTypeRow}>
                   <div className={styles.accountTypeDot} style={{ background: a.color }}/>
