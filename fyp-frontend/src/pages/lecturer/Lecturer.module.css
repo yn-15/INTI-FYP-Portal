@@ -46,6 +46,14 @@
   gap: 20px;
 }
 
+@media (max-width: 900px) {
+  .statsGrid, .statsGrid3 { grid-template-columns: repeat(2, 1fr); }
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .statsGrid, .statsGrid3 { grid-template-columns: 1fr; }
+}
+
 /* ── Card ── */
 .card {
   background: var(--card);
@@ -134,13 +142,21 @@
   border: 1px solid var(--border);
   overflow: hidden;
 }
+@media (max-width: 900px) {
+  .tableWrap {
+    overflow-x: auto;
+  }
+  .tableWrap table {
+    min-width: 640px;
+  }
+}
 
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-thead tr { background: #1A1A1A; }
+thead tr { background: var(--black); }
 th { padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.85); font-weight: 500; font-size: 12.5px; white-space: nowrap; }
 td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-primary); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: #FAFAFA; }
+tr:hover td { background: var(--card-hover); }
 
 .tdMuted { color: var(--text-muted); font-size: 12.5px; }
 .tdBold  { font-weight: 600; }
@@ -240,6 +256,9 @@ tr:hover td { background: #FAFAFA; }
   gap: 10px;
   margin-bottom: 16px;
 }
+@media (max-width: 560px) {
+  .detailGrid { grid-template-columns: 1fr; }
+}
 
 .detailItem {
   padding: 10px 14px;
@@ -290,6 +309,10 @@ tr:hover td { background: #FAFAFA; }
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   overflow: hidden;
+}
+@media (max-width: 800px) {
+  .chatLayout { grid-template-columns: 1fr; }
+  .chatSidebar { max-height: 220px; }
 }
 
 .chatSidebar {
@@ -463,10 +486,10 @@ tr:hover td { background: #FAFAFA; }
   background: var(--card);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--red);
-  padding: 16px 20px;
-  margin-bottom: 12px;
+  padding: var(--sp-4) var(--sp-5);
+  margin-bottom: var(--sp-3);
 }
+.notifCard.unread { border-left: 3px solid var(--red); }
 
 .notifTitle {
   font-size: 15px;
@@ -582,3 +605,6 @@ tr:hover td { background: #FAFAFA; }
 .memberAvatars { display: flex; gap: 4px; margin-top: 12px; }
 
 .formGrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+@media (max-width: 700px) {
+  .formGrid2 { grid-template-columns: 1fr; }
+}
