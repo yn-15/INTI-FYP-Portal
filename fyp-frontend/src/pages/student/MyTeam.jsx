@@ -66,7 +66,7 @@ export default function MyTeam() {
           <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:10 }}>Supervisor</div>
           {supervisor && (
             <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'var(--bg)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)', marginBottom:16 }}>
-              <div className={styles.memberAvatar} style={{ background:'#1A1A1A' }}>
+              <div className={styles.memberAvatar} style={{ background:'var(--black)' }}>
                 {(supervisor.firstName||supervisor.first_name||'')[0]}{(supervisor.lastName||supervisor.last_name||'')[0]}
               </div>
               <div>
@@ -98,7 +98,7 @@ export default function MyTeam() {
             <div className={styles.cardHeader}><h3 className={styles.cardTitle}>Assigned Project</h3></div>
             {proposal ? (
               <>
-                <div style={{ padding:'14px 16px', background:'linear-gradient(135deg,#1A1A1A,#2D0000)', borderRadius:'var(--radius-sm)', marginBottom:14 }}>
+                <div style={{ padding:'14px 16px', background:'linear-gradient(135deg,var(--black),var(--red-dark))', borderRadius:'var(--radius-sm)', marginBottom:14 }}>
                   <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Space Grotesk', marginBottom:3 }}>{proposal.title}</div>
                   <div style={{ fontSize:12.5, color:'rgba(255,255,255,0.6)' }}>{proposal.companyName}</div>
                 </div>
@@ -122,12 +122,12 @@ export default function MyTeam() {
                     <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6, padding:'10px 12px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)' }}>{proposal.problemStatement}</div>
                   </div>
                 )}
-                {proposal.deliverables && (
-                  <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:4 }}>Expected Deliverables</div>
-                    <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6, padding:'10px 12px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)' }}>{proposal.deliverables}</div>
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:4 }}>Expected Deliverables</div>
+                  <div style={{ fontSize:13, color: proposal.deliverables ? 'var(--text-secondary)' : 'var(--text-muted)', lineHeight:1.6, padding:'10px 12px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', fontStyle: proposal.deliverables ? 'normal' : 'italic' }}>
+                    {proposal.deliverables || 'No deliverables specified for this project.'}
                   </div>
-                )}
+                </div>
                 {proposal.companyWebsite && (
                   <a href={proposal.companyWebsite} target="_blank" rel="noreferrer" style={{ fontSize:12.5, color:'var(--red)', textDecoration:'none', display:'block', marginTop:4 }}>
                     🔗 {proposal.companyWebsite}
